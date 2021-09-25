@@ -92,10 +92,10 @@ colScale <- scale_fill_manual(name = "Smoking group", values = group.cols)
 ```{r main data, message=F, warning=F, include=F}
 # Download the two datafiles 
 # demographics contains information such as age, gender etc. in short form 
-full_dat <- read_csv("OSF_demographics.csv")
+full_dat <- read_csv("data/OSF_demographics.csv")
 
 # visual probe task data contains task data in long form 
-dat <- read_csv(file = "OSF_visual_probe_task.csv")
+dat <- read_csv(file = "data/OSF_visual_probe_task.csv")
 
 # Use janitor package to clear names to snake case for easier typing 
 dat <- clean_names(dat, case = "snake")
@@ -199,7 +199,7 @@ FTCD.alpha <- psych::alpha(FTCD_reliability, n.iter = iters)
 
 The FTCD [@fagerstrom_determinants_2012; @heatherton_fagerstrom_1991] was used as a self-report measure of nicotine dependence. The Cronbach's alpha estimate (bootstrapped using 10,000 iterations) in this sample was higher than in previous research, $\alpha$ = `r format.alpha(FTCD.alpha)`.
 
-### Visual probe task
+### Visual Probe Task
 
 The visual probe task was created using Gorilla to present the task in participant's browsers [@anwyl-irvine_gorilla_2019]. Each trial started with a fixation cross in the centre of the screen. This was presented for 250ms before two images were presented horizontally to the left and right of the cross. The fixation cross remained on the screen to ensure its appearance did not compete for attention [@chanon_attentional_2010]. The pictures remained on the screen for either 200ms or 500ms depending on the SOA condition. At picture offset, a small dot appeared in the location vacated by one of the images. The dot remained on the screen until the participant responded either left (Z key) or right (M key). After a response was made, the screen containing only the fixation cross appeared to signal the start of the next trial. 
 
@@ -211,7 +211,7 @@ Participants were provided with an information sheet and provided informed conse
 
 # Results
 
-## Participant attrition and demographics  
+## Participant Attrition and Demographics  
 
 ```{r demographics, include=F, message=F, warning=F}
 
@@ -319,7 +319,7 @@ smoking_plot <- plot_grid(CPD.plot, FTCD.plot,
           ncol = 1, nrow = 2, labels = c("A", "B"))
 
 save_plot(plot = smoking_plot,
-          filename = "CPD and FTCD plot.pdf",
+          filename = "plots/CPD and FTCD plot.pdf",
           base_height = 7.5, 
           base_width = 7.5)
 ```
@@ -342,7 +342,7 @@ apa_table(desc_table,
 smoking_plot
 ```
 
-## Confirmatory analyses: attentional bias towards smoking cues 
+## Confirmatory Analyses: Attentional Bias Towards Smoking Cues 
 
 ```{r missing data}
 # Calculate how much missing data to enter into text  
@@ -419,7 +419,7 @@ interaction.plot <- afex_plot(anov,
   theme_cowplot()
 
 save_plot(plot = interaction.plot,
-          filename = "AB interaction plot.pdf",
+          filename = "plots/AB interaction plot.pdf",
           base_height = 7.5, 
           base_width = 10)
 ```
@@ -434,7 +434,7 @@ interaction.plot
 
 A 2x2 mixed ANOVA was conducted with SOA as a within-subjects IV and smoking group as a between-subjects IV. The mean attentional bias index was used as the DV. There was not a significant effect of SOA (`r format.afex_anova(anov, 2)`) or smoking group (`r format.afex_anova(anov, 1)`). There was also no significant interaction between the two factors, `r format.afex_anova(anov, 3)`. This did not support our prediction that non-daily smokers would show greater attentional bias towards smoking cues than daily smokers.  
 
-## Exploratory analyses: no meaningful difference in attentional bias 
+## Exploratory Analyses: No Meaningful Difference in Attentional Bias 
 
 ```{r equivalence testing results, warning=F, include=F, message=F}
 # Isolate mean and SD RT for smoking group and SOA condition 
@@ -506,7 +506,7 @@ TOST_plot <- equivalence_dat %>%
   coord_flip()
 
 save_plot(plot = TOST_plot, 
-          filename = "TOST plot.pdf",
+          filename = "plots/TOST plot.pdf",
           base_height = 7.5, 
           base_width = 10)
   
@@ -526,7 +526,7 @@ TOST_plot
 
 ```
 
-## Visual probe task reliability
+## Exploratory Analyses: Visual Probe Task Reliability
 
 ```{r cronbachs alpha, message=F, warning=F, results="hide"}
 # Calculate Cronbach's alpha for each SOA condition in visual probe task 
@@ -534,7 +534,7 @@ TOST_plot
 # Produces 16 AB indexes for each SOA condition. Treat these as "items" to calculate internal consistency 
 
 # Begin by repeating processing for visual probe task data 
-rel.dat <- read_csv(file = "OSF_visual_probe_task.csv")
+rel.dat <- read_csv(file = "data/OSF_visual_probe_task.csv")
 
 rel.dat <- clean_names(rel.dat, case = "snake")
 
@@ -644,22 +644,22 @@ The online nature of the study meant the participants’ smoking levels could no
 Using the largest known sample size to investigate attentional bias towards smoking cues, we found there was no meaningful difference between daily and non-daily smokers. The results were statistically equivalent to zero based on equivalence testing. The results can be interpreted in line with contemporary theories of attentional bias where there may not be stable trait-level differences between smoking groups in attentional bias. Future research should focus on investigating how attentional bias fluctuates over time with how smoking cues are being evaluated. 
 \newpage
 
-## Disclosures
+# Disclosures
 
-### Data, code, and materials
+## Data, code, and materials
 The data and code to reproduce these analyses is available at https://osf.io/am9hd/. The OSF project contains all necessary files to reproduce the analyses and figures. The visual probe task was created in Gorilla, and the task can be found using the open materials page at https://gorilla.sc/openmaterials/85021. 
 \newline
 
-### Conflicts of Interest
-The authors declare that they have no conflicts of interest with respect to the authorship or the publication of this article.
+## Declarations of Interest
+Declarations of interest: none.
 \newline
 
-### CRediT contributions
+## CRediT contributions
 Conceptualization (JEB, RJ, NW); Methodology (JEB, RJ, NW); Formal analysis (JEB); Investigation (JEB); Data curation (JEB); Writing - original draft (JEB); Writing - Review & editing (JEB); Supervision (RJ, NW)
 
 \newline
 
-### R and R package acknowledgements
+## R Package Acknowledgements
 ```{r r packages}
 # Use papaja function to report R and package citations 
 # Manually removed some functions within tidyverse that were not used in the analyses 
