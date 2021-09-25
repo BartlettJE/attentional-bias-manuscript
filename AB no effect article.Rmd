@@ -1,0 +1,688 @@
+---
+title             : "No Difference in Trait-Level Attentional Bias Between Daily and Non-Daily Smokers"
+shorttitle        : "Attentional Bias in Daily and Non-Daily Smokers"
+
+author: 
+  - name          : "James E Bartlett"
+    affiliation   : "1,2"
+    corresponding : yes    # Define only one corresponding author
+    address       : "62 Hillhead Street, University of Glasgow, Glasgow, United Kingdom"
+    email         : "james.bartlett@glasgow.ac.uk"
+  - name          : "Rebecca Jenks"
+    affiliation   : "1"
+  - name          : "Nigel Wilson"
+    affiliation   : "1,3"
+
+affiliation:
+  - id            : "1"
+    institution   : "School of Psychological, Social, and Behavioural Sciences, Coventry University"
+  - id            : "2"
+    institution   : "School of Psychology and Neuroscience, University of Glasgow"
+  - id            : "3"
+    institution   : "School of Psychology and Social Science, Arden University"
+
+authornote: |
+  A draft of this manuscript was posted as a preprint on PsyArXiv and ResearchGate. The results were included in a presentation at the SSA PhD Symposium 2019. The data collected for this manuscript have not been reported in another article. 
+
+abstract: |
+ Objective: Daily and non-daily smokers display fundamentally different smoking habits and motives. However, both smoking groups find it difficult to quit smoking long-term. One factor associated with addictive behaviour is attentional bias, but previous research in daily and non-daily smokers found inconsistent results. 
+ 
+  Method: Using an online sample, we compared daily (n = 106) and non-daily (n = 60) smokers in their attentional bias towards smoking pictures. Participants completed a visual probe task with two picture presentation times: 200ms and 500ms. 
+ 
+ Results: We expected non-daily smokers to display greater attentional bias than daily smokers, but the results did not support this. In confirmatory analyses, there were no significant effects of interest, and in exploratory analyses, equivalence testing showed the effects were statistically equivalent to zero. 
+ 
+ Conclusions: The results can be interpreted in line with contemporary theories of attentional bias where there are unlikely to be stable trait-level differences between smoking groups. Future research in attentional bias should focus on state-level differences to focus on how smoking cues are being evaluated in the moment.
+ 
+ Public significance statement: Attentional bias has been studied as a potential mechanism associated with smoking behaviour and targeted with interventions such as cognitive bias modification. This study demonstrates there is no meaningful difference in trait-level attentional bias between daily and non-daily smokers. Furthermore, the internal consistency of the visual probe task is too low to be used as a reliable measure of attentional bias in intervention studies.   
+  
+keywords          : "Non-daily smokers, Visual probe task, Attentional bias, Equivalence testing"
+wordcount         : "4228"
+
+bibliography      : ["references.bib", "r-references.bib"]
+csl               : apa.csl
+
+floatsintext      : no
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+linenumbers       : yes
+mask              : no
+draft             : yes
+
+documentclass     : "apa6"
+classoption       : "man"
+output            : papaja::apa6_pdf
+---
+
+```{r setup, include = FALSE}
+library("papaja")
+require(tidyverse)
+require(janitor)
+require(afex)
+require(psych)
+require(cowplot)
+require(splithalf)
+library(TOSTER)
+
+# Download raincloud plot source file
+# Taken from Allen et al. at https://github.com/RainCloudPlots/RainCloudPlots
+source("raincloud_plot.R")
+```
+
+```{r analysis-preferences}
+# Seed for random number generation
+set.seed(42)
+knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+```
+
+```{r reporting functions and colour palette}
+# This chunk sources custom functions to help with reporting stats and reduce repetition 
+
+source("reporting_functions.R")
+
+# Consistent colour scale to separate daily and non-daily smokers
+group.cols <- c("#a6cee3", "#1f78b4")
+
+names(group.cols) <- (levels(c("Daily", "Non-daily")))
+
+colScale <- scale_fill_manual(name = "Smoking group", values = group.cols)
+```
+
+
+```{r main data, message=F, warning=F, include=F}
+# Download the two datafiles 
+# demographics contains information such as age, gender etc. in short form 
+full_dat <- read_csv("OSF_demographics.csv")
+
+# visual probe task data contains task data in long form 
+dat <- read_csv(file = "OSF_visual_probe_task.csv")
+
+# Use janitor package to clear names to snake case for easier typing 
+dat <- clean_names(dat, case = "snake")
+
+# Perform initial screening process 
+# focus on trials display and response screen of Gorilla for RT to dot
+# Ignore neutral filler trials, incorrect responses, and super fast responses < 200ms 
+dat <- dat %>% 
+  filter(display == "trials" & screen_name == "response" & trial_type != "neutral" & correct == 1 & reaction_time > 199)
+
+# outlier removal
+# 2.5 times the absolute deviation from the median as a threshold (Leys et al. 2013)
+# Calculate this for each participant, SOA condition, and trial type 
+dat <- dat %>%
+  group_by(participant_private_id, soa, trial_type) %>% 
+  mutate(median_rt = median(reaction_time),
+         MAD_threshold = stats::mad(reaction_time)*2.5) %>% 
+  filter(reaction_time > (median_rt - MAD_threshold) & reaction_time < (median_rt + MAD_threshold))
+
+# Calculate how much data (%) present for exclusion criteria later 
+trial_n <- dat %>% 
+  group_by(participant_private_id) %>% 
+  count() %>% 
+  mutate(removed = 256 - n,
+         removed_perc = (256 - n) / 256 * 100)
+
+# join full data and number of trials for exclusion criteria
+full_dat <- right_join(full_dat, trial_n,
+                       by = "participant_private_id")
+
+## Apply exclusion criteria
+
+# Note: more specific criteria have to be entered first, or it gets overwritten 
+full_dat <- full_dat %>% 
+  mutate(included = case_when(smoke_everyday == "Yes" & cigarettes_per_week == "No" ~ 0, # Remove contradictory participants
+                              consent_given == 1 & # exclusion criteria from pre-reg
+                                age > 17 & age < 61 &
+                                device == "computer" & 
+                                past_four_weeks == "Yes" & 
+                                removed_perc < 50 & # only participants with 50% or more trials
+                                technical_issues == "No" ~ 1))
+
+# 3 participants had technical issues with time since last cigarette data, so manually remove 
+excluded <- full_dat %>% 
+  count(last_cigarette == "Exclude")
+
+# Reduce down to only eligible participants 
+full_dat <- full_dat %>% 
+  filter(included == 1 & last_cigarette != "Exclude")
+
+# Remove any ineligible participants from task data
+dat <- dat %>% 
+  filter(participant_private_id %in% full_dat$participant_private_id)
+
+```
+
+# Introduction
+
+Historically, smokers have been treated as a single homogeneous group [@shiffman_light_2009]. However, there are fundamental differences in the smoking habits and motives of daily and non-daily smokers. Between 13% and 36% of smokers are defined as non-daily smokers across the United Kingdom, mainland Europe, and the United States [@bogdanovica_smoking_2011; @kotz_very_2012; @tindle_smoking_2011]. In low and middle-income countries and ethnic minority groups, non-daily smokers have typically been the most prevalent smoking pattern [@fagan_light_2009; @tong_nondaily_2006]. Non-daily smokers smoke infrequently and show negligible signs of nicotine dependence [@shiffman_characteristics_2012; @shiffman_smoking_2012]. Whereas daily smokers report negative reinforcers such as avoiding nicotine withdrawal as the key motivators behind their behaviour, non-daily smokers report positive reinforcers such as smoking around friends and alcohol [@shiffman_smoking_2012; @shiffman_smoking_2014]. Despite these differences, daily and non-daily smokers find it difficult to quit smoking long-term, with 77-92% of daily smokers and 74-83% of non-daily smokers relapsing within 90 days of a quit attempt [@bogdanovica_smoking_2011; @kotz_very_2012; @tindle_smoking_2011]. This means it is important to investigate potential factors associated with the maintenance of smoking behaviour.     
+
+Attentional bias is the tendency to fixate attention on environmental cues associated with smoking [@field_attentional_2008]. It has a positive but small relationship with the experience of craving [@field_meta-analytic_2009] and it is reportedly predictive of abstinence after one week of cessation [@powell_relapse_2010]. Previous research has consistently shown that in comparison to non-smokers, smokers exhibit greater attentional bias towards smoking-related cues [@baschnagel_using_2013; @ehrman_comparing_2002; @kang_individual_2012; @mogg_eye_2003]. However, when studies have included different smoking groups, the results have been less consistent. Some studies show that lighter smokers exhibit greater attentional bias towards smoking cues than heavier smokers [@bradley_attentional_2003; @hogarth_attentional_2003; @mogg_attentional_2005]. On the other hand, other studies show that heavier smokers exhibit greater attentional bias than lighter smokers [@chanon_attentional_2010; @vollstadt-klein_attention_2011; @zack_effects_2001]. These studies vary in how they define their smoking groups, and employ a range of different methods. Despite most studies using the visual probe task, there were inconsistent design features that make it difficult to conclude whether the conflicting results were due to the differences in the samples used, or whether they were due to inconsistencies in the methods. This study focused on comparing attentional bias towards smoking cues in daily and non-daily smokers, and manipulating how long the images are displayed for within the task.  
+
+The visual probe task infers attention through differences in response time (RT). Two images are presented and when they disappear, the participant is required to indicate the location of a small probe that replaces the location of one of the images. Faster RTs to particular stimuli reflect selective attention to a particular location [@field_attentional_2008]. As the location of attention is inferred through differences in RT after the stimuli disappear, the stimuli presentation time can be manipulated. Short stimulus onset asynchronies (SOA) of 200ms or less measure involuntary attentional processes as there is only enough time for one fixation before a response is required [@field_attentional_2008]. Longer SOAs of 500ms or more target voluntary attention as multiple fixations can be made between stimuli. Previous research focusing on lighter and heavier smokers used single SOAs of 500ms [@vollstadt-klein_attention_2011] and 2000ms [@hogarth_attentional_2003; @mogg_attentional_2005]. None of the studies used a very short SOA to measure involuntary attentional processes. @chanon_attentional_2010 found that attentional bias was greater in smokers than non-smokers when a 200ms SOA was used in comparison to a 550ms SOA. Therefore, to investigate the conflict in results between daily and non-daily smokers, this study used two SOAs of 200ms and 500ms. 
+
+An increasingly large proportion of questionnaire-based research is conducted online [@gosling_internet_2015]. However, there has been scepticism about whether the same can be applied to behavioural tasks that rely on accurately measuring RTs. Using a range of tasks that rely on presenting stimuli and recording responses with millisecond accuracy, data collected from web-based samples are almost indistinguishable from lab-based samples [@crump_evaluating_2013; @germine_is_2012; @hilbig_reaction_2016]. The variance of responses is slightly higher in web-based samples [@hilbig_reaction_2016], but even with increased technical variance in online samples, the effect on statistical power is minimal [@brand_assessing_2012]. The worst case scenario resulted in a 3% decrease in power, which can be easily offset by the opportunity to sample more online participants in a shorter space of time. Online samples are more diverse and representative of the population than traditional lab-based studies using undergraduate students [@woods_conducting_2015]. Therefore, to collect a larger sample size than previous attentional bias studies, we collected data online. 
+
+There were two main aims of this study. First, we investigated whether non-daily smokers showed greater attentional bias towards smoking cues than daily smokers. Second, we explored if attentional bias is greater in the initial orientation or maintenance of attention. The protocol and hypotheses for this project were pre-registered on the Open Science Framework (OSF; https://osf.io/am9hd/). We hypothesised non-daily smokers would show greater attentional bias than daily smokers. There was no *a priori* hypothesis for the effect of SOA condition. This means we expected non-daily smokers to show greater attentional bias than daily smokers, but it was not clear what the difference in magnitude would be under different SOA conditions. 
+
+# Method
+
+## Design
+
+The study used a 2 x 2 mixed quasi-experimental design, with one between-subjects IV of smoking group with two levels: daily and non-daily smokers. This was determined by the participants responding to the question "Do you usually smoke cigarettes every day?". Non-daily smokers responded "No", and daily smokers responded "Yes". There was one within-subjects IV of the visual probe task SOA which had two levels: 200ms and 500ms. The dependent variable was the attentional bias index (ms) calculated by subtracting the mean RT to smoking trials from the mean RT to neutral trials. Positive values indicate greater attentional bias towards smoking cues, and negative values indicate greater attentional bias towards neutral cues. 
+
+## Participants and Sample Size Calculation
+
+Data were collected online using Prolific (https://prolific.ac/), where participants were paid £2 for a 20 minute study. Inclusion criteria included all participants should have normal or corrected-normal vision, be between the ages of 18 to 60, and smoke at least one cigarette per week or four cigarettes per month.
+
+We simulated a power analysis to inform the sample size and we set the smallest effect size of interest based on estimates from a previously unpublished study in our lab and previous research. In our study, the mean difference in attentional bias score between smoking groups was 6.13ms (95% CI = [-5.27, 17.53]) for a 200ms SOA and 11.35ms (95% CI = [-4.51, 27.21] for a 500ms SOA. However, we also consulted previous research as the confidence intervals were wide due to the smaller sample size of the study. The smallest known effects for a 200ms SOA was 5ms [@chanon_attentional_2010] and 11ms for a 500ms SOA [@bradley_attentional_2003]. Taking these estimates into account, the smallest effect sizes of interest were 5ms (200ms) and 10ms (500ms). In addition to the effect size estimates, we set a conservative standard deviation estimate of 20ms based on @vollstadt-klein_attention_2011. 
+
+These values were used to conduct a simulated power analysis for a 2 x 2 mixed ANOVA using R. The code for the power analysis can be found in the pre-registration protocol (https://osf.io/am9hd/). Based on previous research, we expected non-daily smokers to display greater attentional bias towards smoking cues than daily smokers. We set the conditions of the power analysis as non-daily smokers having a 5ms (200ms) and 10ms (500ms) greater mean difference in attentional bias score than daily smokers. For each condition, the values were sampled from a normal distribution with a conservative standard deviation of 20ms. The sample size for each smoking group was increased from 10 (N = 20) to 150 (N = 300) in steps of 10, with each step repeating 10,000 times. Eighty percent power (alpha = .05, beta = .20) was reached between 50 and 60 participants per group. The target for the final sample size was 60 per group (N = 120) to avoid underestimating power.  
+
+## Materials 
+
+### Fagerström Test for Cigarette Dependence (FTCD)
+
+```{r FTCD internal consistency}
+
+# Number of iterations for bootstrapping
+iters <- 1e4 # 10,000
+
+# Select from the 6 FTCD items 
+FTCD_reliability <- full_dat[, 16:21]
+
+# Three participants missing cigarette per day, so remove 
+FTCD_reliability <- FTCD_reliability[complete.cases(FTCD_reliability), ]
+
+# Save Cronbach's alpha object with bootstrapping 
+FTCD.alpha <- psych::alpha(FTCD_reliability, n.iter = iters)
+```
+
+The FTCD [@fagerstrom_determinants_2012; @heatherton_fagerstrom_1991] was used as a self-report measure of nicotine dependence. The Cronbach's alpha estimate (bootstrapped using 10,000 iterations) in this sample was higher than in previous research, $\alpha$ = `r format.alpha(FTCD.alpha)`.
+
+### Visual probe task
+
+The visual probe task was created using Gorilla to present the task in participant's browsers [@anwyl-irvine_gorilla_2019]. Each trial started with a fixation cross in the centre of the screen. This was presented for 250ms before two images were presented horizontally to the left and right of the cross. The fixation cross remained on the screen to ensure its appearance did not compete for attention [@chanon_attentional_2010]. The pictures remained on the screen for either 200ms or 500ms depending on the SOA condition. At picture offset, a small dot appeared in the location vacated by one of the images. The dot remained on the screen until the participant responded either left (Z key) or right (M key). After a response was made, the screen containing only the fixation cross appeared to signal the start of the next trial. 
+
+The task consisted of 16 image pairs for neutral trials, and 16 image pairs for smoking and matching non-smoking trials. The smoking and non-smoking images were developed in our lab and 16 image pairs from the IAPS [@lang_international_2008] were used to create filler neutral trials. The trial order was randomised for each participant. Each picture pair was presented four times to cover each combination of image (left and right) and dot location (left and right). For each picture pair, this process was repeated for each SOA condition. This procedure was repeated twice and presented in two blocks, creating 384 trials overall with 64 trials in each SOA and trial type condition.  
+
+## Procedure 
+
+Participants were provided with an information sheet and provided informed consent by ticking a box. This study was approved by the Faculty of Health and Life Sciences Ethical Approval board. Participants completed a short questionnaire on their demographic information, smoking habits, and the FTCD. The next page contained the visual probe task which began with a set of instructions asking the participant to complete the task in a quiet environment free of distractions. Participants completed 12 practice trials which provided feedback on their responses and overall accuracy. The practice trials contained additional images from the IAPS which were not included in the experimental trials. The two experimental blocks were divided with a break screen that allowed the participant to start the second block as soon as they were ready. After the task, participants completed four questions on their experience completing the study. These included whether they experienced any technical issues, whether they used an ineligible device, and if they had completed the study before. Similar to @clifford_is_2014, participants were also asked if they had any distractions while they completed the study such as listening to music or talking to someone. Participants were debriefed before they were redirected to Prolific. If the participants successfully reached the end of the study, they were paid £2.
+
+# Results
+
+## Participant attrition and demographics  
+
+```{r demographics, include=F, message=F, warning=F}
+
+# Convert data to numeric - read as character originally 
+full_dat$age <- as.numeric(full_dat$age)
+full_dat$age_started_smoking <- as.numeric(full_dat$age_started_smoking)
+full_dat$cpd <- as.numeric(full_dat$cpd)
+full_dat$last_cigarette <- as.numeric(full_dat$last_cigarette)
+
+# Add alternate dependence criteria for exploratory analyses
+full_dat <- full_dat %>% 
+  mutate(FTCD = case_when(FTCDsum < 3 ~ "Non-dependent",
+                          FTCDsum > 2 ~ "Dependent"),
+         CPD = case_when(cpd  < 10 ~ "Light", 
+                         cpd > 9 ~ "Heavy"))
+
+# Subset data into daily and non-daily smokers for table 
+nondaily <- full_dat %>% 
+  filter(smoke_everyday == "No")
+
+daily <- full_dat %>% 
+  filter(smoke_everyday == "Yes")
+
+# Calculate percentage ethnicities in non-daily smokers 
+nondaily_ethnicity <- nondaily %>% 
+  count(ethnicity) %>%
+  mutate(perc = round(n / nrow(nondaily), 2))
+
+# Isolate percentage white participants and format for simple table entry 
+nondaily_white <- paste0(nondaily_ethnicity$perc[4]*100, "%")
+
+# Calculate percentage ethnicities in daily smokers 
+daily_ethnicity <- daily %>% 
+  count(ethnicity) %>%
+  mutate(perc = round(n / nrow(daily), 2))
+
+# Isolate percentage white participants and format for simple table entry 
+daily_white <- paste0(daily_ethnicity$perc[5]*100, "%")
+
+# Calculate percentage female participants for non-daily smokers 
+perc_nondaily <- round(length(subset(nondaily, nondaily$gender == "Female"))/nrow(nondaily)*100, 2)
+
+# format for simple table entry 
+perc_nondaily <- paste0(perc_nondaily, "%")
+
+# Calculate percentage female daily smokers 
+perc_daily <- round(length(subset(daily, daily$gender == "Female"))/nrow(daily)*100, 2)
+
+# format for simple table entry 
+perc_daily <- paste0(perc_daily, "%")
+
+# Build table using tribble to define each cell for non-daily and daily smokers 
+desc_table <- tribble(~"", ~"Non-Daily Smokers", ~"Daily Smokers",
+        "Age", mean_sd(nondaily$age), mean_sd(daily$age),
+        "% female", perc_nondaily, perc_daily,
+        "% white", nondaily_white, daily_white,
+        "FTCD", mean_sd(nondaily$FTCDsum), mean_sd(daily$FTCDsum),
+        "Cigarettes per day", mean_sd(nondaily$cpd), mean_sd(daily$cpd),
+        "Age started to smoke", mean_sd(nondaily$age_started_smoking), mean_sd(daily$age_started_smoking),
+        "Time since last cigarette (minutes)*", median_IQR(nondaily$last_cigarette), median_IQR(daily$last_cigarette) 
+)
+```
+
+```{r smoking figure set up, warning=F, message=F, include=F}
+# Create plot grid for FTCD and CPD data in daily and non-daily smokers 
+
+# CPD 
+CPD.plot <- full_dat %>% 
+  ggplot(aes(x = smoke_everyday, y = as.numeric(cpd), fill = smoke_everyday)) + 
+  # Define raincloud plot settings (Allen et al. 2019)
+  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2) +
+  geom_boxplot(aes(x = smoke_everyday, y = as.numeric(cpd)),
+               outlier.shape = NA, alpha = 0.6, width = .1, colour = "BLACK") + 
+  geom_point(position = position_jitter(width = .15), size = .25) + 
+  xlab("Smoking group") + 
+  scale_x_discrete(labels=c("Non-daily", "Daily")) + 
+  ylab("Cigarettes per day") + 
+  scale_fill_manual(values = c("#1f78b4", "#a6cee3")) + 
+  coord_flip() + 
+  guides(fill = FALSE) +
+  guides(color = FALSE) + 
+  theme_cowplot()
+
+# FTCD
+FTCD.plot <- full_dat %>% 
+  ggplot(aes(x = smoke_everyday, y = FTCDsum, fill = smoke_everyday)) + 
+  # Define raincloud plot settings 
+  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2) +
+  geom_boxplot(aes(x = smoke_everyday, y = FTCDsum),
+               outlier.shape = NA, alpha = 0.6, width = .1, colour = "BLACK") + 
+  geom_point(position = position_jitter(width = .15), size = .25) + 
+  xlab("Smoking group") + 
+  scale_x_discrete(labels=c("Non-daily", "Daily")) + 
+  ylab("Total FTCD score") + 
+  scale_fill_manual(values = c("#1f78b4", "#a6cee3")) + 
+  scale_y_continuous(breaks = seq(0, 10, 2),
+                     limits = c(0, 10)) + 
+  coord_flip() + 
+  guides(fill = FALSE) +
+  guides(color = FALSE) + 
+  theme_cowplot()
+
+# Combine each plot into a grid ordered vertically 
+smoking_plot <- plot_grid(CPD.plot, FTCD.plot,
+          ncol = 1, nrow = 2, labels = c("A", "B"))
+
+save_plot(plot = smoking_plot,
+          filename = "CPD and FTCD plot.pdf",
+          base_height = 7.5, 
+          base_width = 7.5)
+```
+
+From 218 people who accessed the study on Gorilla, 205 completed the experiment and received payment. The final sample was 166 after applying exclusion criteria, with 60 non-daily and 106 daily smokers. Participants were excluded for having fewer than 50% of the possible trials (n = 4), reporting to experience technical issues during the task (n = 16), incompatible participants who reported to smoke every day but not every week (n = 3), and smokers who had not smoked in the past four weeks (n = 19). The total number equals 42 as some participants met more than one criterion.   
+
+The key demographic information for each smoking group is presented in Table \@ref(tab:demographics-table). Daily smokers smoked more cigarettes per day and had a higher FTCD score. Non-daily smokers exemplified infrequent smoking as the median time since their last cigarette was 48 hours, while it was only one hour for daily smokers. Figure \@ref(fig:smoking-plot) shows the distribution of FTCD scores and cigarettes per day for both groups. The majority of non-daily smokers report low values, while daily smokers are distributed more evenly across both measures. 
+
+```{r demographics-table}
+# Use papaja helper function to create a pretty table 
+apa_table(desc_table,
+          caption = "Mean (SD) values for participant characteristics and scale scores.",
+          note = "*Due to large skew, these values represent the median and IQR.")
+```
+
+(ref:smoking-plot-caption) Two different measures of nicotine dependence: (a) number of cigarettes per day, and (b) FTCD score. The data are presented as raincloud plots [@allen_raincloud_2019]. The top element for each group represents the distribution of scores through the density. The bottom element presents the individual data points, with a boxplot superimposed to show summary statistics.
+
+```{r smoking-plot, fig.cap="(ref:smoking-plot-caption)"}
+# Display smoking grid plot. Caption comes from statement previously 
+smoking_plot
+```
+
+## Confirmatory analyses: attentional bias towards smoking cues 
+
+```{r missing data}
+# Calculate how much missing data to enter into text  
+trials_median <- median(full_dat$removed)
+
+trials_range <- range(full_dat$removed)
+
+# What % of trials is remaining? 
+trials_removed <- nrow(dat) / (256 * length(unique(dat$participant_private_id))) * 100
+
+trials_removed <- round(100 - trials_removed, 2)
+```
+
+The R code for the results is available on the OSF project (https://osf.io/am9hd/). Incorrect responses were removed in addition to responses faster than 200ms as they represent preemptive responses. Outliers were defined as any response outside 2.5 times the median absolute deviation for each participant, SOA, and trial condition (Leys et al. 2013). This process resulted in `r trials_removed`% of the total possible trials being removed, with the median number of excluded trials for each participant being `r trials_median` (range `r trials_range[1]` - `r trials_range[2]`).
+
+```{r mean differences}
+# Calculate mean RT for each condition
+ab_analysis <- dat %>% 
+  group_by(participant_private_id, trial_type, soa) %>% 
+  summarise(mean_rt = mean(reaction_time))
+
+# Spread smoking and neutral trials to calculate AB index
+ab_analysis <- ab_analysis %>% 
+  spread(key = trial_type, value = mean_rt) %>% 
+  mutate(ab_index = nonsmoking - smoking)
+
+# Isolate key variables from demographs to join with AB data
+smoking_dat <- full_dat %>% 
+  select(participant_private_id, smoke_everyday, CPD, FTCD, last_cigarette)
+
+# Add daily / non-daily smoking info 
+ab_analysis <- right_join(ab_analysis, smoking_dat,
+                       by = "participant_private_id")
+
+# Calculate mean and SD for AB index
+ab_descriptives <- ab_analysis %>% 
+  group_by(smoke_everyday, soa) %>% 
+  summarise(mean_bias = round(mean(ab_index), 2),
+            sd_bias = round(sd(ab_index), 2))
+
+```
+
+The mean (*SD*) attentional bias index in the 200ms SOA condition was `r  ab_descriptives$mean_bias[3]`ms (`r ab_descriptives$sd_bias[3]`) for daily smokers, and `r  ab_descriptives$mean_bias[1]`ms (`r ab_descriptives$sd_bias[1]`) for non-daily smokers. In the 500ms SOA condition, the mean bias score was `r  ab_descriptives$mean_bias[4]`ms (`r ab_descriptives$sd_bias[4]`) for daily smokers, and `r  ab_descriptives$mean_bias[2]`ms (`r ab_descriptives$sd_bias[2]`) in non-daily smokers. This was in the opposite direction to the predicted effect, as non-daily smokers were expected to display a 5ms bias index in the 200ms condition, and 10ms bias index in the 500ms. The results are displayed in Figure \@ref(fig:interaction-plot).
+
+```{r ANOVA and interaction plot, warning=F, include=F, message=F}
+# Relabel to daily and non-daily smokers to look better 
+ab_analysis$smoke_everyday[ab_analysis$smoke_everyday == "Yes"] <- "Daily" 
+ab_analysis$smoke_everyday[ab_analysis$smoke_everyday == "No"] <- "Non-daily" 
+
+# Calculate 2x2 ANOVA using afex 
+anov <- aov_ez(id = "participant_private_id",
+       dv = "ab_index", 
+       between = "smoke_everyday",
+       within = c("soa"),
+       data = ab_analysis)
+
+# Define interaction plot based on anova object 
+interaction.plot <- afex_plot(anov, 
+          x = "soa", 
+          trace = "smoke_everyday",
+          error_ci = T, # Show 95% CI 
+          legend_title = "Smoking group",
+          point_arg = list(size = 2),
+          error_arg = list(size = 1, width = 0.1),
+          line_arg = list(size = 1),
+          mapping = c("color", "shape", "fill")) + # ensure link and error bars coloured  
+  xlab("SOA") + 
+  ylab("Attentional bias index (ms)") + 
+  scale_x_discrete(labels = c("200ms", "500ms")) + 
+  geom_hline(yintercept = 0, linetype = 2) + # Display 0 AB index for reference 
+  scale_y_continuous(breaks = seq(-100, 100, 25),
+                     limits = c(-100, 100)) + 
+  scale_color_manual(values = c("#a6cee3", "#1f78b4")) + 
+  theme_cowplot()
+
+save_plot(plot = interaction.plot,
+          filename = "AB interaction plot.pdf",
+          base_height = 7.5, 
+          base_width = 10)
+```
+
+(ref:interaction-plot-caption) Interaction plot showing the mean attentional bias index for daily and non-daily smokers by SOA condition. The error bars represent the 95% CI around the mean. Positive values indicate greater attentional bias towards smoking cues. Negative values indicate greater attentional bias towards neutral cues. The grey points show the individual scores per condition.
+
+```{r interaction-plot, fig.cap="(ref:interaction-plot-caption)"}
+# Display interaction plot. Caption defined in previous statement. 
+interaction.plot
+
+```
+
+A 2x2 mixed ANOVA was conducted with SOA as a within-subjects IV and smoking group as a between-subjects IV. The mean attentional bias index was used as the DV. There was not a significant effect of SOA (`r format.afex_anova(anov, 2)`) or smoking group (`r format.afex_anova(anov, 1)`). There was also no significant interaction between the two factors, `r format.afex_anova(anov, 3)`. This did not support our prediction that non-daily smokers would show greater attentional bias towards smoking cues than daily smokers.  
+
+## Exploratory analyses: no meaningful difference in attentional bias 
+
+```{r equivalence testing results, warning=F, include=F, message=F}
+# Isolate mean and SD RT for smoking group and SOA condition 
+mean_sd <- ab_analysis %>% 
+  group_by(smoke_everyday, soa) %>% 
+  summarise(mean_RT = mean(ab_index),
+            sd_RT = sd(ab_index))
+
+# Convert to data frame frame from table as formatting was messing up the TOST function 
+mean_sd <- as.data.frame(mean_sd)
+
+# Comparing daily and non-daily smokers on 200ms SOA
+# boundaries set to d ± .41 based on small telescope approach (Lakens et al. 2018)
+# Vollstaedt-Klein et al. 33% power to detect d = .41. 
+SOA200 <- TOSTtwo(m1 = mean_sd[1, 3], m2 = mean_sd[3, 3], 
+                  sd1 = mean_sd[1, 4], sd2 = mean_sd[3, 4], 
+                  n1 = 106, n2 = 60, 
+                  low_eqbound_d = -0.41, high_eqbound_d = 0.41)
+
+# Comparing daily and non-daily smokers on 500ms SOA
+# Same boundaries as above 
+SOA500 <- TOSTtwo(m1 = mean_sd[2, 3], m2 = mean_sd[4, 3], 
+                  sd1 = mean_sd[2, 4], sd2 = mean_sd[4, 4], 
+                  n1 = 106, n2 = 60, 
+                  low_eqbound_d = -0.41, high_eqbound_d = 0.41)
+
+# Populate tibble for key information needed for plotting 
+# Isolate mean difference with 90% and 95% CI for each SOA condition 
+equivalence_dat <-
+  tribble(
+    ~ condition,
+    ~ mean_diff,
+    ~ LL_TOST,
+    ~ UL_TOST,
+    ~ LL_TTEST,
+    ~ UL_TTEST,
+    "200ms",
+    SOA200$diff,
+    SOA200$LL_CI_TOST,
+    SOA200$UL_CI_TOST,
+    SOA200$LL_CI_TTEST,
+    SOA200$UL_CI_TTEST,
+    "500ms",
+    SOA500$diff,
+    SOA500$LL_CI_TOST,
+    SOA500$UL_CI_TOST,
+    SOA500$LL_CI_TTEST,
+    SOA500$UL_CI_TTEST
+  )
+
+# Create manual TOST plot to demonstrate the mean difference + 90% / 95% CI 
+TOST_plot <- equivalence_dat %>% 
+  ggplot(aes(x = condition, y = mean_diff)) + 
+  geom_point(size = 5, shape = 3) + # Show mean difference with horizontal line 
+  # Create two error bars for 90% and 95% CI - differentiate with thicker 90% line
+  geom_errorbar(aes(ymin = LL_TOST, ymax = UL_TOST), width = 0, size = 2) + 
+  geom_errorbar(aes(ymin = LL_TTEST, ymax = UL_TTEST), width = 0) + 
+  # Demonstrate effect size boundary in raw mean difference units 
+  geom_hline(yintercept = -8.42, linetype = 2) +
+  geom_hline(yintercept = 8.42, linetype = 2) +
+  # Reference point at 0 mean difference 
+  geom_hline(yintercept = 0, linetype = 5) +
+  scale_y_continuous(breaks = seq(-10, 10, 2),
+                     limits = c(-10, 10)) + 
+  ylab("Mean difference in AB index (ms)") + 
+  xlab("SOA condition") + 
+  theme_cowplot() + 
+  # flip on it's side to visualise easier 
+  coord_flip()
+
+save_plot(plot = TOST_plot, 
+          filename = "TOST plot.pdf",
+          base_height = 7.5, 
+          base_width = 10)
+  
+```
+
+The results did not support our hypotheses, but *p*-values in isolation do not provide evidence in favour of the null. In order to demonstrate there was no meaningful difference in attentional bias between daily and non-daily smokers, we performed equivalence testing on the two comparisons of interest: the difference between daily and non-daily smokers for both the 200ms and 500ms SOA condition. 
+
+Previous research or theory have not outlined what effects sizes would support their predictions, therefore the effect size boundaries were set as d = ±0.41. This is based on the small telescopes method of setting the smallest effect size of interest [@lakens_equivalence_2018] based on the effect the largest previous study had 33% power to detect (@vollstadt-klein_attention_2011 with two groups of 25 and 26 participants).  
+
+For the 200ms SOA condition, the two one-sided test procedure was significant, demonstrating that the difference in attentional bias towards smoking cues between daily and non-daily smokers was not significantly different to zero, but statistically equivalent to zero, `r format.TOST(SOA200)`. Similarly, the difference in attentional bias between daily and non-daily in the 500ms SOA condition was not significantly different to zero, but statistically equivalent to zero, `r format.TOST(SOA500)`. The equivalence testing procedure is presented in Figure \@ref(fig:TOST-plot), showing that the 90% confidence interval around the mean difference crosses zero, but does not cross the effect size boundary of d = ±.41 (expressed here in raw units). 
+
+(ref:TOST-plot-caption) Plot showing the mean difference in attentional bias index between daily and non-daily smokers in each SOA condition. The thick black line represents the 90% confidence interval for the two one-sided test procedure. The think black line represents the 95% confidence interval. The dashed vertical lines represent the equivalence boundaries in raw scores. 
+
+```{r TOST-plot, fig.cap="(ref:TOST-plot-caption)"}
+# Display TOST plot - caption defined in previous statement 
+TOST_plot
+
+```
+
+## Visual probe task reliability
+
+```{r cronbachs alpha, message=F, warning=F, results="hide"}
+# Calculate Cronbach's alpha for each SOA condition in visual probe task 
+# Follow procedure of Christiansen et al. (2015) to calculate AB index for each picture pair 
+# Produces 16 AB indexes for each SOA condition. Treat these as "items" to calculate internal consistency 
+
+# Begin by repeating processing for visual probe task data 
+rel.dat <- read_csv(file = "OSF_visual_probe_task.csv")
+
+rel.dat <- clean_names(rel.dat, case = "snake")
+
+# Perform initial screening process 
+rel.dat <- rel.dat %>% 
+  filter(display == "trials" & screen_name == "response" & trial_type != "neutral" & correct == 1 & reaction_time > 199)
+
+# outlier removal
+# 2.5 times the absolute deviation from the median as a threshold
+rel.dat <- rel.dat %>%
+  group_by(participant_private_id, soa, trial_type, stimulus_no) %>% 
+  mutate(median_rt = median(reaction_time),
+         MAD_threshold = stats::mad(reaction_time)*2.5) %>% 
+  filter(reaction_time > (median_rt - MAD_threshold) & reaction_time < (median_rt + MAD_threshold))
+
+# Include stimulus number as a factor to get a mean RT per participant, SOA, trial, and stimulus (due to images being repeated)
+rel.dat <- rel.dat %>% 
+  group_by(participant_private_id, soa, trial_type, stimulus_no) %>%
+  filter(participant_private_id %in% full_dat$participant_private_id) %>% # Remove ineligible participants 
+  summarise(mean_rt = mean(reaction_time)) %>% 
+  spread(key = trial_type, value = mean_rt) %>% 
+  mutate(AB_index = nonsmoking - smoking)
+
+# Convert stimulus number to factor 
+rel.dat$stimulus_no <- as.factor(rel.dat$stimulus_no)
+
+# Start with 200ms SOA condition 
+
+rel.analysis <- rel.dat %>% 
+  filter(soa == 200) %>% 
+  select(stimulus_no, AB_index)
+
+# get rid of SOA column to stop it messing up 
+rel.analysis <- rel.analysis[c(1, 3, 4)]
+
+# Convert to wide format for one AB index per stimulus number spread across columns 
+rel.analysis <- rel.analysis %>% 
+  spread(key = stimulus_no, value = AB_index)
+
+# Calculate Cronbach's alpha with 10,000 bootstraps 
+alpha.200 <- psych::alpha(rel.analysis[2:17],
+             n.iter = 1e4)
+
+# Repeat for 500ms SOA condition 
+rel.analysis <- rel.dat %>% 
+  filter(soa == 500) %>% 
+  select(stimulus_no, AB_index)
+
+# get rid of SOA column to stop it messing up 
+rel.analysis <- rel.analysis[c(1, 3, 4)]
+
+# Convert to wide format 
+rel.analysis <- rel.analysis %>% 
+  spread(key = stimulus_no, value = AB_index)
+
+# Cronbach's alpha with 10,000 bootstraps 
+alpha.500 <- psych::alpha(rel.analysis[2:17],
+             n.iter = 1e4)
+```
+
+Following calls to report the reliability of cognitive tasks [@parsons_psychological_2019], we calculated Cronbach's alpha for the attentional bias index across the 16 stimulus pairs. This was poor for both the 200ms ($\alpha$ = `r format.alpha(alpha.200)`) and 500ms ($\alpha$ = `r format.alpha(alpha.500)`) SOA conditions. 
+
+```{r split half reliability, message=F, warning=F, results="hide"}
+
+# Parsons et al. (2019) criticised alpha for cognitive tasks and present split half reliability 
+# Calculate permutation split half reliability with 5000 iterations 
+# No special processing necessary as function takes long form data
+difference <- splithalf(data = dat,
+                        outcome = "RT",
+                        score = "difference", # Calculate mean difference in RT between conditions
+                        conditionlist = c("200", "500"),
+                        halftype = "random",
+                        permutations = 5000,
+                        var.RT = "reaction_time",
+                        var.condition = "soa",
+                        var.participant = "participant_private_id",
+                        var.trialnum = "trial_number",
+                        var.compare = "trial_type",
+                        compare1 = "nonsmoking",
+                        compare2 = "smoking",
+                        average = "mean")
+
+```
+
+Internal consistency estimates were reported for comparison with previous studies, but they assume the items or trials are presented in the same order for each participant [@parsons_psychological_2019]. As cognitive tasks randomise trials, internal consistency may not be the best approach for estimating reliability. An alternative is a permutation approach to calculating split-half reliability [@R-splithalf]. This randomly splits the data set into two halves many times, and calculates the average correlation between each half for each condition. Using 5000 iterations, poor reliability was also reflected in the split-half estimate (corrected using the Spearman-Brown formula) with suboptimal results for the 200ms (`r format.splithalf(difference, "200")[1]`) and 500ms (`r format.splithalf(difference, "500")[2]`) SOA condition. 
+
+# Discussion
+
+We hypothesised that non-daily smokers would display greater attentional bias towards smoking cues than daily smokers. Some studies found that non-daily smokers exhibited greater attentional bias [@bradley_attentional_2003; @hogarth_attentional_2003; @mogg_attentional_2005], whereas other studies found that daily smokers displayed greater attentional bias [@chanon_attentional_2010; @vollstadt-klein_attention_2011; @zack_effects_2001]. We found there was no meaningful difference in attentional bias towards smoking cues in daily and non-daily smokers. Equivalence testing demonstrated that the difference between the smoking groups was statistically equivalent to zero. 
+
+We may have found null results as previous research could have problems with inflated effect sizes due to low statistical power. The previous largest known sample was 51 smokers in @vollstadt-klein_attention_2011. In the simplest scenario, splitting these into two groups of 25 and 26 participants, a sensitivity power analysis using G\*Power [@faul_statistical_2009] indicates that this sample size would be sensitive to detect effect sizes of Cohen’s d = 0.80 (alpha = .05, beta = .20). Incidentally, @schafer_meaningfulness_2019 showed that the median Cohen's d in a random selection of 684 articles that were not pre-registered was 0.80. In the long-run, G\*Power shows that our study would have 99% power to detect an effect size of 0.80. Therefore, it is unlikely the effect between daily and non-daily smokers is this large, or we would have had enough power to detect it. 
+
+The problem is that small sample sizes are only sensitive to detect large effects, and due to publication bias where only significant results are published, studies with smaller effects are not reported [@etz_bayesian_2016]. Our study had the largest known sample size to investigate attentional bias with 60 non-daily smokers and 106 daily smokers. A sensitivity power analysis shows that this was sensitive to detect effect sizes of Cohen’s d = 0.46. Our study was sensitive to detect an effect size of almost half the size of the next biggest sample in @vollstadt-klein_attention_2011. Using the small telescopes approach to setting a smallest effect size of interest [@lakens_equivalence_2018], the results in our study were statistically equivalent to zero when effect size boundaries were set as Cohen's d = ± 0.41. This suggests that previous studies in attentional bias represent gross overestimates of any effect, potentially due to overinflated effects from small sample sizes. No previous study reported a power analysis which makes it difficult to ascertain what effect sizes they were interested in. There may not be a meaningful difference in attentional bias between smoking groups, at least in its current implementation where the effect is assumed to represent stable trait-like group differences.
+
+Contemporary theories of attentional bias suggest it may not be a trait-like phenomenon that can produce stable differences between groups. @field_role_2016 suggested that attentional bias could vary from moment to moment depending on how substance cues are being evaluated. This suggests that rather than being a stable trait between smoking groups, it fluctuates with the incentive value of a cue which makes within-group differences more important. @begh_association_2016 found that laboratory measures of attentional bias such as the Stroop task and the visual probe task did not predict subsequent smoking behaviour in the real-world. However, assessments of craving and awareness of smoking cues in the environment measured through ecological momentary assessment did predict smoking behaviour. Therefore, the conflicting results in previous studies and the null results in our study may be a product of the fluctuating nature of attentional bias in response to momentary evaluations of smoking cues [@field_role_2016]. In smaller samples, attentional bias could fluctuate one way or the other, but in larger samples like our study, differences in attentional bias could cancel out and converge to a mean difference around zero. Therefore, future research may benefit from investigating which factors affect the momentary evaluation of substance cues and the subsequent expression of attentional bias.
+
+The visual probe task is popular, but it may be problematic. There are vocal critics of the task due to its questionable level of internal consistency [@ataya_internal_2012; @schmukle_unreliability_2005], with previous estimates ranging between 0 [@waechter_measuring_2014] and .28 [@schmukle_unreliability_2005]. A reliability estimate of 0 means each trial in the task is measuring a different construct [@henson_understanding_2001]. Our study also had suboptimal levels of internal consistency and split-half reliability. The reliability of cognitive tasks is rarely reported unless it is the main focus of the article [@parsons_psychological_2019], which means it is difficult to fully assess how reliable the tasks were in previous research. Low reliability may not be critical for experimental research [@hedge_reliability_2018], but if researchers plan to use the visual probe task across multiple measurements, such as in cognitive bias modification or the evaluation of substance cues, then its poor psychometric properties are problematic. For future research, it may be beneficial to use eye-tracking as a direct measure of visual attention to measure attentional bias as it produces larger effects [@field_meta-analytic_2009], has higher internal consistency [@christiansen_less_2015; @price_empirical_2015; @waechter_measuring_2014], and does not rely on inferring the location of attention. 
+
+## Limitations 
+
+There were some limitations to consider when interpreting the results. First, our sample may have been more diverse than typical psychology undergraduates in age and education, but it still contained predominantly white participants. Non-daily smoking is more prevalent in ethnic minority groups [@fagan_light_2009; @levy_natural_2009], and the health implications of smoking disproportionately affect non-white smokers [@st.helen_black_2019]. Therefore, future research would benefit from recruiting a larger proportion of non-white smokers, in order for the results to generalise beyond mostly white smokers.
+
+The online nature of the study meant the participants’ smoking levels could not be verified objectively using Carbon Monoxide. Although, @ramo_reliability_2011 demonstrated that smoking-related information collected online has good reliability and validity. Relatedly, as participants completed the study in an environment of their choosing, there was no control over the time since their last cigarette. Daily and non-daily smokers have different smoking habits, demonstrated by daily smokers having a cigarette an hour prior to the study on average, while non-daily smokers last smoked two days prior. This did lead to some idiosyncrasies as some smokers reported to smoke while they were completing the study. Although this may represent a more naturalistic environment for the smokers, this meant that our study had less control over smokers' deprivation levels.
+
+## Conclusion 
+
+Using the largest known sample size to investigate attentional bias towards smoking cues, we found there was no meaningful difference between daily and non-daily smokers. The results were statistically equivalent to zero based on equivalence testing. The results can be interpreted in line with contemporary theories of attentional bias where there may not be stable trait-level differences between smoking groups in attentional bias. Future research should focus on investigating how attentional bias fluctuates over time with how smoking cues are being evaluated. 
+\newpage
+
+## Disclosures
+
+### Data, code, and materials
+The data and code to reproduce these analyses is available at https://osf.io/am9hd/. The OSF project contains all necessary files to reproduce the analyses and figures. The visual probe task was created in Gorilla, and the task can be found using the open materials page at https://gorilla.sc/openmaterials/85021. 
+\newline
+
+### Conflicts of Interest
+The authors declare that they have no conflicts of interest with respect to the authorship or the publication of this article.
+\newline
+
+### CRediT contributions
+Conceptualization (JEB, RJ, NW); Methodology (JEB, RJ, NW); Formal analysis (JEB); Investigation (JEB); Data curation (JEB); Writing - original draft (JEB); Writing - Review & editing (JEB); Supervision (RJ, NW)
+
+\newline
+
+### R and R package acknowledgements
+```{r r packages}
+# Use papaja function to report R and package citations 
+# Manually removed some functions within tidyverse that were not used in the analyses 
+my_citations <- cite_r(file = "r-references.bib", 
+                       pkgs = c("forcats", "lme4", "Matrix", "purrr", "tidyverse"), 
+                       withhold = TRUE)
+```
+
+The results were created using `r my_citations`. 
+
+\newpage
+
+# References
+```{r create_r-references}
+# Create bib files for loaded packages
+
+# Will be cited in my_citations above and formatted into bibliography below 
+r_refs(file = "r-references.bib")
+```
+
+\begingroup
+\setlength{\parindent}{-0.5in}
+\setlength{\leftskip}{0.5in}
+
+<div id="refs" custom-style="Bibliography"></div>
+\endgroup
