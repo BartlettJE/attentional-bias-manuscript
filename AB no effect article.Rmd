@@ -39,7 +39,7 @@ tablelist         : no
 footnotelist      : no
 linenumbers       : yes
 mask              : no
-draft             : yes
+draft             : no
 
 documentclass     : "apa6"
 classoption       : "man"
@@ -648,7 +648,6 @@ Declarations of interest: none.
 
 ## CRediT contributions
 Conceptualization (JEB, RJ, NW); Methodology (JEB, RJ, NW); Formal analysis (JEB); Investigation (JEB); Data curation (JEB); Writing - original draft (JEB); Writing - Review & editing (JEB); Supervision (RJ, NW)
-
 \newline
 
 ## R Package Acknowledgements
