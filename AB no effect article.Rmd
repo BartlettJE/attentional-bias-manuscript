@@ -315,9 +315,9 @@ save_plot(plot = smoking_plot,
           base_width = 7.5)
 ```
 
-From 218 people who accessed the study on Gorilla, 205 completed the experiment and received payment. The final sample was 166 after applying exclusion criteria, with 60 non-daily and 106 daily smokers. Participants were excluded for having fewer than 50% of the possible trials (n = 4), reporting to experience technical issues during the task (n = 16), incompatible participants who reported to smoke every day but not every week (n = 3), and smokers who had not smoked in the past four weeks (n = 19). The total number equals 42 as some participants met more than one criterion.   
+218 people accessed the study and 205 completed the experiment and received payment. The final sample was 166 after applying exclusion criteria, with 60 non-daily and 106 daily smokers. Participants were excluded for having fewer than 50% of the possible trials (n = 4), experiencing technical issues (n = 16), reporting to smoke every day but not every week (n = 3), and not smoking in the past four weeks (n = 19). The total number equals 42 as some participants met more than one criterion.   
 
-The key demographic information for each smoking group is presented in Table \@ref(tab:demographics-table). Daily smokers smoked more cigarettes per day and had a higher FTCD score. Non-daily smokers exemplified infrequent smoking as the median time since their last cigarette was 48 hours, while it was only one hour for daily smokers. Figure \@ref(fig:smoking-plot) shows the distribution of FTCD scores and cigarettes per day for both groups. The majority of non-daily smokers report low values, while daily smokers are distributed more evenly across both measures. 
+The key demographic information is presented in Table \@ref(tab:demographics-table). Daily smokers smoked more cigarettes per day and had a higher FTCD score. Non-daily smokers exemplified infrequent smoking as the median time since their last cigarette was 48 hours, while it was only one hour for daily smokers. Figure \@ref(fig:smoking-plot) shows the distribution of FTCD scores and cigarettes per day. Most non-daily smokers report low values, while daily smokers are distributed more evenly. 
 
 ```{r demographics-table}
 # Use papaja helper function to create a pretty table 
@@ -326,7 +326,7 @@ apa_table(desc_table,
           note = "*Due to large skew, these values represent the median and IQR.")
 ```
 
-(ref:smoking-plot-caption) Two different measures of nicotine dependence: (a) number of cigarettes per day, and (b) FTCD score. The data are presented as raincloud plots [@allen_raincloud_2019]. The top element for each group represents the distribution of scores through the density. The bottom element presents the individual data points, with a boxplot superimposed to show summary statistics.
+(ref:smoking-plot-caption) Two different measures of nicotine dependence: (A) number of cigarettes per day and (B) FTCD score. The data are presented as raincloud plots [@allen_raincloud_2019]. The top element for each group represents the distribution of scores through the density. The bottom element presents the individual data points with a superimposed boxplot.
 
 ```{r smoking-plot, fig.cap="(ref:smoking-plot-caption)"}
 # Display smoking grid plot. Caption comes from statement previously 
@@ -347,7 +347,7 @@ trials_removed <- nrow(dat) / (256 * length(unique(dat$participant_private_id)))
 trials_removed <- round(100 - trials_removed, 2)
 ```
 
-The R code for the results is available on the OSF project (https://osf.io/am9hd/). Incorrect responses were removed in addition to responses faster than 200ms as they represent preemptive responses. Outliers were defined as any response outside 2.5 times the median absolute deviation for each participant, SOA, and trial condition (Leys et al. 2013). This process resulted in `r trials_removed`% of the total possible trials being removed, with the median number of excluded trials for each participant being `r trials_median` (range `r trials_range[1]` - `r trials_range[2]`).
+The R code is available on the OSF (https://osf.io/am9hd/). Incorrect responses were removed in addition to responses faster than 200ms as they represent preemptive responses. Outliers were defined as any response outside 2.5 times the median absolute deviation for each participant, SOA, and trial condition (Leys et al. 2013). This meant we removed `r trials_removed`% of the total possible trials, with the median number of excluded trials for each participant being `r trials_median` (range `r trials_range[1]` - `r trials_range[2]`).
 
 ```{r mean differences}
 # Calculate mean RT for each condition
@@ -376,7 +376,7 @@ ab_descriptives <- ab_analysis %>%
 
 ```
 
-The mean (*SD*) attentional bias index in the 200ms SOA condition was `r  ab_descriptives$mean_bias[3]`ms (`r ab_descriptives$sd_bias[3]`) for daily smokers, and `r  ab_descriptives$mean_bias[1]`ms (`r ab_descriptives$sd_bias[1]`) for non-daily smokers. In the 500ms SOA condition, the mean bias score was `r  ab_descriptives$mean_bias[4]`ms (`r ab_descriptives$sd_bias[4]`) for daily smokers, and `r  ab_descriptives$mean_bias[2]`ms (`r ab_descriptives$sd_bias[2]`) in non-daily smokers. This was in the opposite direction to the predicted effect, as non-daily smokers were expected to display a 5ms bias index in the 200ms condition, and 10ms bias index in the 500ms. The results are displayed in Figure \@ref(fig:interaction-plot).
+The mean (*SD*) attentional bias index in the 200ms SOA condition was `r  ab_descriptives$mean_bias[3]`ms (`r ab_descriptives$sd_bias[3]`) for daily smokers and `r  ab_descriptives$mean_bias[1]`ms (`r ab_descriptives$sd_bias[1]`) for non-daily smokers. In the 500ms SOA condition, the mean bias index was `r  ab_descriptives$mean_bias[4]`ms (`r ab_descriptives$sd_bias[4]`) for daily smokers and `r  ab_descriptives$mean_bias[2]`ms (`r ab_descriptives$sd_bias[2]`) for non-daily smokers. This was in the opposite direction to our hypotheses as non-daily smokers were expected to display greater attentional bias towards smoking images than daily smokers. The results are displayed in Figure \@ref(fig:interaction-plot).
 
 ```{r ANOVA and interaction plot, warning=F, include=F, message=F}
 # Relabel to daily and non-daily smokers to look better 
@@ -415,7 +415,7 @@ save_plot(plot = interaction.plot,
           base_width = 10)
 ```
 
-(ref:interaction-plot-caption) Interaction plot showing the mean attentional bias index for daily and non-daily smokers by SOA condition. The error bars represent the 95% CI around the mean. Positive values indicate greater attentional bias towards smoking cues. Negative values indicate greater attentional bias towards neutral cues. The grey points show the individual scores per condition.
+(ref:interaction-plot-caption) Interaction plot showing the mean attentional bias index for daily and non-daily smokers by SOA condition. The error bars represent the 95% CI around the mean. Positive values indicate greater attentional bias towards smoking cues. The grey points show the individual scores per condition.
 
 ```{r interaction-plot, fig.cap="(ref:interaction-plot-caption)"}
 # Display interaction plot. Caption defined in previous statement. 
@@ -423,7 +423,7 @@ interaction.plot
 
 ```
 
-A 2x2 mixed ANOVA was conducted with SOA as a within-subjects IV and smoking group as a between-subjects IV. The mean attentional bias index was used as the DV. There was not a significant effect of SOA (`r format.afex_anova(anov, 2)`) or smoking group (`r format.afex_anova(anov, 1)`). There was also no significant interaction between the two factors, `r format.afex_anova(anov, 3)`. This did not support our prediction that non-daily smokers would show greater attentional bias towards smoking cues than daily smokers.  
+We used a 2x2 mixed ANOVA with SOA as a within-subjects IV and smoking group as a between-subjects IV. The mean attentional bias index was the DV. There was not a significant effect of SOA (`r format.afex_anova(anov, 2)`) or smoking group (`r format.afex_anova(anov, 1)`). There was also no significant interaction between the two factors, `r format.afex_anova(anov, 3)`. This did not support our prediction that non-daily smokers would show greater attentional bias towards smoking cues than daily smokers.  
 
 ## Exploratory Analyses: No Meaningful Difference in Attentional Bias 
 
@@ -503,13 +503,13 @@ save_plot(plot = TOST_plot,
   
 ```
 
-The results did not support our hypotheses, but *p*-values in isolation do not provide evidence in favour of the null. In order to demonstrate there was no meaningful difference in attentional bias between daily and non-daily smokers, we performed equivalence testing on the two comparisons of interest: the difference between daily and non-daily smokers for both the 200ms and 500ms SOA condition. 
+The results did not support our hypotheses, but *p*-values in isolation do not provide evidence in favour of the null. To demonstrate there was no meaningful difference between daily and non-daily smokers, we performed equivalence testing on the two comparisons of interest: the difference between daily and non-daily smokers at each SOA condition. 
 
-Previous research or theory have not outlined what effects sizes would support their predictions, therefore the effect size boundaries were set as d = ±0.41. This is based on the small telescopes method of setting the smallest effect size of interest [@lakens_equivalence_2018] based on the effect the largest previous study had 33% power to detect (@vollstadt-klein_attention_2011 with two groups of 25 and 26 participants).  
+Previous research has not outlined what are meaningful effects sizes, therefore we set the effect size boundaries as Cohen's d = ±0.41. This is based on the small telescopes method [@lakens_equivalence_2018] for the effect size the largest previous study had 33% power to detect (@vollstadt-klein_attention_2011 with two groups of 25 and 26 participants).  
 
-For the 200ms SOA condition, the two one-sided test procedure was significant, demonstrating that the difference in attentional bias towards smoking cues between daily and non-daily smokers was not significantly different to zero, but statistically equivalent to zero, `r format.TOST(SOA200)`. Similarly, the difference in attentional bias between daily and non-daily in the 500ms SOA condition was not significantly different to zero, but statistically equivalent to zero, `r format.TOST(SOA500)`. The equivalence testing procedure is presented in Figure \@ref(fig:TOST-plot), showing that the 90% confidence interval around the mean difference crosses zero, but does not cross the effect size boundary of d = ±.41 (expressed here in raw units). 
+For the 200ms SOA condition, the two one-sided test procedure was significant, demonstrating that the difference in attentional bias towards smoking cues between daily and non-daily smokers was statistically equivalent to zero, `r format.TOST(SOA200)`. Similarly, the 500ms SOA condition was statistically equivalent to zero, `r format.TOST(SOA500)`. The equivalence testing procedure is presented in Figure \@ref(fig:TOST-plot), showing that the 90% confidence interval around the mean difference crosses zero, but does not cross the effect size boundaries of d = ±.41 (expressed here in raw units). 
 
-(ref:TOST-plot-caption) Plot showing the mean difference in attentional bias index between daily and non-daily smokers in each SOA condition. The thick black line represents the 90% confidence interval for the two one-sided test procedure. The think black line represents the 95% confidence interval. The dashed vertical lines represent the equivalence boundaries in raw scores. 
+(ref:TOST-plot-caption) The mean difference in attentional bias index between daily and non-daily smokers in each SOA condition. The thick black line represents the 90% confidence interval for the two one-sided test procedure. The thin black line represents the 95% confidence interval. The dashed vertical lines represent the equivalence boundaries in raw scores. 
 
 ```{r TOST-plot, fig.cap="(ref:TOST-plot-caption)"}
 # Display TOST plot - caption defined in previous statement 
@@ -610,7 +610,7 @@ difference <- splithalf(data = dat,
 
 ```
 
-Internal consistency estimates were reported for comparison with previous studies, but they assume the items or trials are presented in the same order for each participant [@parsons_psychological_2019]. As cognitive tasks randomise trials, internal consistency may not be the best approach for estimating reliability. An alternative is a permutation approach to calculating split-half reliability [@R-splithalf]. This randomly splits the data set into two halves many times, and calculates the average correlation between each half for each condition. Using 5000 iterations, poor reliability was also reflected in the split-half estimate (corrected using the Spearman-Brown formula) with suboptimal results for the 200ms (`r format.splithalf(difference, "200")[1]`) and 500ms (`r format.splithalf(difference, "500")[2]`) SOA condition. 
+We reported internal consistency estimates for comparison with previous studies, but they assume the items or trials are presented in the same order [@parsons_psychological_2019]. As cognitive tasks randomise trials, internal consistency may not be the best approach. An alternative is a permutation approach to calculating split-half reliability [@R-splithalf]. This randomly splits the data set into two halves many times and calculates the average correlation between each half. Using 5000 iterations, poor reliability was also reflected in the split-half estimate (corrected using the Spearman-Brown formula) for the 200ms (`r format.splithalf(difference, "200")[1]`) and 500ms (`r format.splithalf(difference, "500")[2]`) SOA conditions. 
 
 # Discussion
 
