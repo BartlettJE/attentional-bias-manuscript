@@ -28,7 +28,7 @@ abstract: |
    Both daily and non-daily smokers find it difficult to quit smoking long-term. One factor associated with addictive behaviour is attentional bias, but previous research in daily and non-daily smokers found inconsistent results and did not report the reliability of their cognitive tasks. Using an online sample, we compared daily (n = 106) and non-daily (n = 60) smokers in their attentional bias towards smoking pictures. Participants completed a visual probe task with two picture presentation times: 200ms and 500ms. In confirmatory analyses, there were no significant effects of interest, and in exploratory analyses, equivalence testing showed the effects were statistically equivalent to zero. The internal consistency of the visual probe task was poor, meaning it should not be used for repeated testing or investigating individual differences. The results can be interpreted in line with contemporary theories of attentional bias where there are unlikely to be stable trait-level differences between smoking groups. Future research in attentional bias should focus on state-level differences using more reliable measures than the visual probe task.
  
 keywords          : "Non-daily smokers, Visual probe task, Attentional bias, Equivalence testing"
-wordcount         : "4228"
+wordcount         : "3745"
 
 bibliography      : ["references.bib", "r-references.bib"]
 csl               : apa.csl
@@ -55,6 +55,7 @@ require(psych)
 require(cowplot)
 require(splithalf)
 library(TOSTER)
+library(pwr)
 
 # Download raincloud plot source file
 # Taken from Allen et al. at https://github.com/RainCloudPlots/RainCloudPlots
@@ -277,9 +278,9 @@ CPD.plot <- full_dat %>%
   geom_boxplot(aes(x = smoke_everyday, y = as.numeric(cpd)),
                outlier.shape = NA, alpha = 0.6, width = .1, colour = "BLACK") + 
   geom_point(position = position_jitter(width = .15), size = .25) + 
-  xlab("Smoking group") + 
+  xlab("Smoking Group") + 
   scale_x_discrete(labels=c("Non-daily", "Daily")) + 
-  ylab("Cigarettes per day") + 
+  ylab("Cigarettes Per Day") + 
   scale_fill_grey(start = 0, end = 0.5) + 
   coord_flip() + 
   guides(fill = FALSE) +
@@ -294,9 +295,9 @@ FTCD.plot <- full_dat %>%
   geom_boxplot(aes(x = smoke_everyday, y = FTCDsum),
                outlier.shape = NA, alpha = 0.6, width = .1, colour = "BLACK") + 
   geom_point(position = position_jitter(width = .15), size = .25) + 
-  xlab("Smoking group") + 
+  xlab("Smoking Group") + 
   scale_x_discrete(labels=c("Non-daily", "Daily")) + 
-  ylab("Total FTCD score") + 
+  ylab("Total FTCD Score") + 
   scale_fill_grey(start = 0, end = 0.5) + 
   scale_y_continuous(breaks = seq(0, 10, 2),
                      limits = c(0, 10)) + 
@@ -395,13 +396,13 @@ interaction.plot <- afex_plot(anov,
           x = "soa", 
           trace = "smoke_everyday",
           error_ci = T, # Show 95% CI 
-          legend_title = "Smoking group",
+          legend_title = "Smoking Group",
           point_arg = list(size = 2),
           error_arg = list(size = 1, width = 0.1),
           line_arg = list(size = 1),
           mapping = c("color", "shape", "fill")) + # ensure link and error bars coloured  
   xlab("SOA") + 
-  ylab("Attentional bias index (ms)") + 
+  ylab("Attentional Bias Index (ms)") + 
   scale_x_discrete(labels = c("200ms", "500ms")) + 
   geom_hline(yintercept = 0, linetype = 2) + # Display 0 AB index for reference 
   scale_y_continuous(breaks = seq(-100, 100, 25),
@@ -490,8 +491,8 @@ TOST_plot <- equivalence_dat %>%
   geom_hline(yintercept = 0, linetype = 5) +
   scale_y_continuous(breaks = seq(-10, 10, 2),
                      limits = c(-10, 10)) + 
-  ylab("Mean difference in AB index (ms)") + 
-  xlab("SOA condition") + 
+  ylab("Mean Difference in AB Index (ms)") + 
+  xlab("SOA Condition") + 
   theme_cowplot() + 
   # flip on it's side to visualise easier 
   coord_flip()
@@ -509,7 +510,7 @@ Previous research has not outlined what are meaningful effects sizes, therefore 
 
 For the 200ms SOA condition, the two one-sided test procedure was significant, demonstrating that the difference in attentional bias towards smoking cues between daily and non-daily smokers was statistically equivalent to zero, `r format.TOST(SOA200)`. Similarly, the 500ms SOA condition was statistically equivalent to zero, `r format.TOST(SOA500)`. The equivalence testing procedure is presented in Figure \@ref(fig:TOST-plot), showing that the 90% confidence interval around the mean difference crosses zero, but does not cross the effect size boundaries of d = ±.41 (expressed here in raw units). 
 
-(ref:TOST-plot-caption) The mean difference in attentional bias index between daily and non-daily smokers in each SOA condition. The thick black line represents the 90% confidence interval for the two one-sided test procedure. The thin black line represents the 95% confidence interval. The dashed vertical lines represent the equivalence boundaries in raw scores. 
+(ref:TOST-plot-caption) The thin vertical lines show the mean difference in attentional bias index between daily and non-daily smokers in each SOA condition. The thick horizontal black lines represent the 90% confidence interval for the two one-sided test procedure. The thin horizontal black lines represent the 95% confidence interval. The dashed vertical lines represent the equivalence boundaries in raw scores. 
 
 ```{r TOST-plot, fig.cap="(ref:TOST-plot-caption)"}
 # Display TOST plot - caption defined in previous statement 
@@ -614,25 +615,48 @@ We reported internal consistency estimates for comparison with previous studies,
 
 # Discussion
 
-We hypothesised that non-daily smokers would display greater attentional bias towards smoking cues than daily smokers. Some studies found that non-daily smokers exhibited greater attentional bias [@bradley_attentional_2003; @hogarth_attentional_2003; @mogg_attentional_2005], whereas other studies found that daily smokers displayed greater attentional bias [@chanon_attentional_2010; @vollstadt-klein_attention_2011; @zack_effects_2001]. We found there was no meaningful difference in attentional bias towards smoking cues in daily and non-daily smokers. Equivalence testing demonstrated that the difference between the smoking groups was statistically equivalent to zero. 
+We hypothesised that non-daily smokers would display greater attentional bias towards smoking cues than daily smokers. Some studies found that non-daily smokers exhibited greater attentional bias [@bradley_attentional_2003; @hogarth_attentional_2003; @mogg_attentional_2005], whereas others found that daily smokers displayed greater attentional bias [@chanon_attentional_2010; @vollstadt-klein_attention_2011; @zack_effects_2001]. We found using equivalence testing that there was no meaningful difference in attentional bias in daily and non-daily smokers.
 
-We may have found null results as previous research could have problems with inflated effect sizes due to low statistical power. The previous largest known sample was 51 smokers in @vollstadt-klein_attention_2011. In the simplest scenario, splitting these into two groups of 25 and 26 participants, a sensitivity power analysis using G\*Power [@faul_statistical_2009] indicates that this sample size would be sensitive to detect effect sizes of Cohen’s d = 0.80 (alpha = .05, beta = .20). Incidentally, @schafer_meaningfulness_2019 showed that the median Cohen's d in a random selection of 684 articles that were not pre-registered was 0.80. In the long-run, G\*Power shows that our study would have 99% power to detect an effect size of 0.80. Therefore, it is unlikely the effect between daily and non-daily smokers is this large, or we would have had enough power to detect it. 
+```{r sensitivity power}
 
-The problem is that small sample sizes are only sensitive to detect large effects, and due to publication bias where only significant results are published, studies with smaller effects are not reported [@etz_bayesian_2016]. Our study had the largest known sample size to investigate attentional bias with 60 non-daily smokers and 106 daily smokers. A sensitivity power analysis shows that this was sensitive to detect effect sizes of Cohen’s d = 0.46. Our study was sensitive to detect an effect size of almost half the size of the next biggest sample in @vollstadt-klein_attention_2011. Using the small telescopes approach to setting a smallest effect size of interest [@lakens_equivalence_2018], the results in our study were statistically equivalent to zero when effect size boundaries were set as Cohen's d = ± 0.41. This suggests that previous studies in attentional bias represent gross overestimates of any effect, potentially due to overinflated effects from small sample sizes. No previous study reported a power analysis which makes it difficult to ascertain what effect sizes they were interested in. There may not be a meaningful difference in attentional bias between smoking groups, at least in its current implementation where the effect is assumed to represent stable trait-like group differences.
+vollstaedt_sensitivity <- round(
+  pwr.t2n.test(n1 = 25, # 166 participants in total
+             n2 = 26, 
+             power = 0.8,
+             sig.level = .05)$d, # Isolate the effect size for sensitivity
+  2)
 
-Contemporary theories of attentional bias suggest it may not be a trait-like phenomenon that can produce stable differences between groups. @field_role_2016 suggested that attentional bias could vary from moment to moment depending on how substance cues are being evaluated. This suggests that rather than being a stable trait between smoking groups, it fluctuates with the incentive value of a cue which makes within-group differences more important. @begh_association_2016 found that laboratory measures of attentional bias such as the Stroop task and the visual probe task did not predict subsequent smoking behaviour in the real-world. However, assessments of craving and awareness of smoking cues in the environment measured through ecological momentary assessment did predict smoking behaviour. Therefore, the conflicting results in previous studies and the null results in our study may be a product of the fluctuating nature of attentional bias in response to momentary evaluations of smoking cues [@field_role_2016]. In smaller samples, attentional bias could fluctuate one way or the other, but in larger samples like our study, differences in attentional bias could cancel out and converge to a mean difference around zero. Therefore, future research may benefit from investigating which factors affect the momentary evaluation of substance cues and the subsequent expression of attentional bias.
+d_power <- round(
+  pwr.t2n.test(n1 = 60, # 166 participants in total
+                n2 = 106, 
+             d = 0.8,
+             sig.level = .05)$power, # Isolate the effect size for sensitivity
+  3)*100
 
-The visual probe task is popular, but it may be problematic. There are vocal critics of the task due to its questionable level of internal consistency [@ataya_internal_2012; @schmukle_unreliability_2005], with previous estimates ranging between 0 [@waechter_measuring_2014] and .28 [@schmukle_unreliability_2005]. A reliability estimate of 0 means each trial in the task is measuring a different construct [@henson_understanding_2001]. Our study also had suboptimal levels of internal consistency and split-half reliability. The reliability of cognitive tasks is rarely reported unless it is the main focus of the article [@parsons_psychological_2019], which means it is difficult to fully assess how reliable the tasks were in previous research. Low reliability may not be critical for experimental research [@hedge_reliability_2018], but if researchers plan to use the visual probe task across multiple measurements, such as in cognitive bias modification or the evaluation of substance cues, then its poor psychometric properties are problematic. For future research, it may be beneficial to use eye-tracking as a direct measure of visual attention to measure attentional bias as it produces larger effects [@field_meta-analytic_2009], has higher internal consistency [@christiansen_less_2015; @price_empirical_2015; @waechter_measuring_2014], and does not rely on inferring the location of attention. 
+study_sensitivity <- round(
+  pwr.t2n.test(n1 = 60, # 166 participants in total
+             n2 = 106, 
+             power = 0.8,
+             sig.level = .05)$d, # Isolate the effect size for sensitivity
+  2)
+
+```
+
+We may have found null results as previous research could have problems with inflated effect sizes due to low statistical power. The previous largest known sample was 51 smokers in @vollstadt-klein_attention_2011. In the simplest scenario, splitting these into 25 and 26 participants, a sensitivity power analysis indicates that this sample size would be sensitive to detect effect sizes of Cohen’s d = `r vollstaedt_sensitivity` (alpha = .05, beta = .20). Incidentally, @schafer_meaningfulness_2019 showed that the median Cohen's d in a random selection of 684 non-pre-registered articles was 0.80. In the long-run, our study would have `r d_power`% power to detect an effect size of 0.80. Therefore, it is unlikely the effect between daily and non-daily smokers is this large, or we would have had enough power to detect it. Our study had the largest known sample size to investigate attentional bias with 60 non-daily smokers and 106 daily smokers. A sensitivity power analysis shows that this was sensitive to detect effect sizes of Cohen’s d = `r study_sensitivity`. Our study was sensitive to detect an effect size of almost half the size of @vollstadt-klein_attention_2011. Our results were statistically equivalent to zero when we set effect size boundaries at Cohen's d = ± 0.41. There may not be a meaningful difference in attentional bias between smoking groups, at least in its current implementation where the effect is assumed to represent stable trait-like group differences.
+
+Contemporary theories suggest attentional bias may not be a trait-like phenomenon that can produce stable differences between groups. @field_role_2016 suggested that attentional bias varies depending on how substance cues are being evaluated. The theory suggests that rather than being a stable trait between groups, it fluctuates with the incentive value of a cue which makes within-group differences more important. @begh_association_2016 found that laboratory measures like the visual probe task did not predict smoking behaviour in the real-world. However, ecological momentary assessment of craving and awareness of smoking cues in the environment did predict smoking behaviour. Therefore, the null results in our study may be a product of the fluctuating nature of attentional bias [@field_role_2016]. In smaller samples, attentional bias could fluctuate one way or the other, but in larger samples like our study, the differences could cancel out and converge to a mean difference around zero. Therefore, future research may benefit from investigating which factors affect the momentary evaluation of substance cues and the subsequent expression of attentional bias.
+
+Using the visual probe task to measure factors that affect the momentary evaluation of substance cues may be problematic. There are vocal critics of the task due to its questionable level of internal consistency [@ataya_internal_2012; @schmukle_unreliability_2005; @waechter_measuring_2014]. Our study also had suboptimal levels of internal consistency and split-half reliability. Researchers rarely report the reliability of cognitive tasks unless it is the main focus of the article [@parsons_psychological_2019], which means it is difficult to assess how reliable the tasks were in previous smoking research. In experimental studies, low reliability is not critical as cognitive tasks emphasise group differences [@hedge_reliability_2018], but if researchers plan to use the visual probe task across multiple measurements - such as in cognitive bias modification or the evaluation of substance cues - then its poor psychometric properties *are* problematic. Future research should use eye-tracking as a direct measure of attentional bias as it produces larger effect sizes [@field_meta-analytic_2009], has higher internal consistency [@price_empirical_2015], and higher criterion validity [@soleymani_free-viewing_2020].
 
 ## Limitations 
 
-There were some limitations to consider when interpreting the results. First, our sample may have been more diverse than typical psychology undergraduates in age and education, but it still contained predominantly white participants. Non-daily smoking is more prevalent in ethnic minority groups [@fagan_light_2009; @levy_natural_2009], and the health implications of smoking disproportionately affect non-white smokers [@st.helen_black_2019]. Therefore, future research would benefit from recruiting a larger proportion of non-white smokers, in order for the results to generalise beyond mostly white smokers.
+Our sample may have been more diverse than typical psychology undergraduates in age and education, but it still contained predominantly white participants. Non-daily smoking is more prevalent in ethnic minority groups [@fagan_light_2009; @levy_natural_2009] and the health implications of smoking disproportionately affect non-white smokers [@st.helen_black_2019]. Therefore, future research would benefit from recruiting a larger proportion of non-white smokers for the results to generalise beyond mostly white smokers.
 
-The online nature of the study meant the participants’ smoking levels could not be verified objectively using Carbon Monoxide. Although, @ramo_reliability_2011 demonstrated that smoking-related information collected online has good reliability and validity. Relatedly, as participants completed the study in an environment of their choosing, there was no control over the time since their last cigarette. Daily and non-daily smokers have different smoking habits, demonstrated by daily smokers having a cigarette an hour prior to the study on average, while non-daily smokers last smoked two days prior. This did lead to some idiosyncrasies as some smokers reported to smoke while they were completing the study. Although this may represent a more naturalistic environment for the smokers, this meant that our study had less control over smokers' deprivation levels.
+The online nature of the study meant participants’ smoking levels could not be verified objectively using measures of Carbon Monoxide [@wray_comparative_2016]. However, @ramo_reliability_2011 demonstrated that smoking-related information collected online has good reliability and validity. Relatedly, as participants completed the study online, there was no control over their smoking behaviour before and during the study. Daily and non-daily smokers have different smoking habits, demonstrated by the average time since their last cigarette. This lead to idiosyncrasies as some smokers reported to smoke while they were completing the study. Although this may represent a more naturalistic environment for the smokers, our study had less control over smokers' deprivation levels.
 
 ## Conclusion 
 
-Using the largest known sample size to investigate attentional bias towards smoking cues, we found there was no meaningful difference between daily and non-daily smokers. The results were statistically equivalent to zero based on equivalence testing. The results can be interpreted in line with contemporary theories of attentional bias where there may not be stable trait-level differences between smoking groups in attentional bias. Future research should focus on investigating how attentional bias fluctuates over time with how smoking cues are being evaluated. 
+Using the largest known sample size to investigate attentional bias towards smoking cues, we found using equivalence tesing that there was no meaningful difference between daily and non-daily smokers. The results can be interpreted in line with contemporary theories of attentional bias where there may not be stable trait-level differences between smoking groups in attentional bias. Future research should focus on investigating how attentional bias fluctuates over time using more reliable measures than the visual probe task. 
 \newpage
 
 # Disclosures
@@ -642,11 +666,11 @@ The data and code to reproduce these analyses is available at https://osf.io/am9
 \newline
 
 ## Declarations of Interest
-Declarations of interest: none.
+We have no conflicts of interest to declare.
 \newline
 
 ## CRediT contributions
-Conceptualization (JEB, RJ, NW); Methodology (JEB, RJ, NW); Formal analysis (JEB); Investigation (JEB); Data curation (JEB); Writing - original draft (JEB); Writing - Review & editing (JEB); Supervision (RJ, NW)
+Conceptualization (JEB, RJ, NW); Methodology (JEB, RJ, NW); Formal analysis (JEB); Investigation (JEB); Data curation (JEB); Writing - original draft (JEB); Writing - Review & editing (JEB, RJ, NW); Supervision (RJ, NW)
 \newline
 
 ## R Package Acknowledgements
