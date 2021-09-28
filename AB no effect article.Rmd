@@ -1,6 +1,6 @@
 ---
 title             : "No Difference in Trait-Level Attentional Bias Between Daily and Non-Daily Smokers"
-shorttitle        : "Attentional Bias in Daily and Non-Daily Smokers"
+shorttitle        : "This is a preprint before peer review"
 
 author: 
   - name          : "James E Bartlett"
@@ -193,7 +193,7 @@ The FTCD [@fagerstrom_determinants_2012; @heatherton_fagerstrom_1991] was used a
 
 ### Visual Probe Task
 
-We used Gorilla [@anwyl-irvine_gorilla_2019] to present the visual probe task in participant's browsers [@anwyl-irvine_gorilla_2019]. Each trial started with a 250ms central fixation cross before two images were presented horizontally to the left and right. The fixation cross remained on the screen to ensure its appearance did not compete for attention [@chanon_attentional_2010]. The pictures remained on the screen for either 200ms or 500ms depending on the SOA condition. At picture offset, a small dot appeared in the location vacated by one of the images. The dot remained on the screen until the participant responded either left (Z key) or right (M key). After they responded, the screen containing only the fixation cross appeared to signal the start of the next trial. 
+We used Gorilla [@anwyl-irvine_gorilla_2019] to present the visual probe task in participant's browsers. Each trial started with a 250ms central fixation cross before two images were presented horizontally to the left and right. The fixation cross remained on the screen to ensure its appearance did not compete for attention [@chanon_attentional_2010]. The pictures remained on the screen for either 200ms or 500ms depending on the SOA condition. At picture offset, a small dot appeared in the location vacated by one of the images. The dot remained on the screen until the participant responded either left (Z key) or right (M key). After they responded, the screen containing only the fixation cross appeared to signal the start of the next trial. 
 The task consisted of 16 image pairs for neutral trials and 16 image pairs for smoking/non-smoking trials. We developed the matching smoking and non-smoking images in our lab [@bartlett_daily_2020] and we created neutral trials using 16 image pairs from the IAPS [@lang_international_2008]. The trial order was randomised with each picture pair presented four times to cover each combination of image (left and right) and dot location (left and right). For each picture pair, this process was repeated for each SOA condition. This procedure was repeated twice and presented in two blocks, creating 384 trials overall with 64 trials in each SOA and trial type condition.  
 
 ## Procedure 
