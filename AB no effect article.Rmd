@@ -33,7 +33,7 @@ wordcount         : "3745"
 bibliography      : ["references.bib", "r-references.bib"]
 csl               : apa.csl
 
-floatsintext      : no
+floatsintext      : yes
 figurelist        : no
 tablelist         : no
 footnotelist      : no
@@ -60,6 +60,10 @@ library(pwr)
 # Download raincloud plot source file
 # Taken from Allen et al. at https://github.com/RainCloudPlots/RainCloudPlots
 source("raincloud_plot.R")
+
+# This chunk sources custom functions to help with reporting stats and reduce repetition 
+
+source("reporting_functions.R")
 ```
 
 ```{r analysis-preferences}
@@ -67,20 +71,6 @@ source("raincloud_plot.R")
 set.seed(42)
 knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 ```
-
-```{r reporting functions and colour palette}
-# This chunk sources custom functions to help with reporting stats and reduce repetition 
-
-source("reporting_functions.R")
-
-# Consistent colour scale to separate daily and non-daily smokers
-group.cols <- c("#a6cee3", "#1f78b4")
-
-names(group.cols) <- (levels(c("Daily", "Non-daily")))
-
-colScale <- scale_fill_manual(name = "Smoking group", values = group.cols)
-```
-
 
 ```{r main data, message=F, warning=F, include=F}
 # Download the two datafiles 
@@ -147,13 +137,13 @@ dat <- dat %>%
 
 # Introduction
 
-Historically, smokers have been treated as a single homogeneous group [@shiffman_light_2009]. However, there are fundamental differences in the smoking habits and motives of daily and non-daily smokers. 13-36% of smokers are defined as non-daily smokers across the United Kingdom, mainland Europe, and the United States [@bogdanovica_smoking_2011; @kotz_very_2012; @tindle_smoking_2011]. In low and middle-income countries and ethnic minority groups, non-daily smokers have typically been the most prevalent smoking pattern [@fagan_light_2009; @tong_nondaily_2006]. Non-daily smokers smoke infrequently and show negligible signs of nicotine dependence [@shiffman_characteristics_2012; @shiffman_smoking_2012]. Whereas daily smokers cite negative reinforcers such as avoiding nicotine withdrawal as the key motivators, non-daily smokers cite positive reinforcers such as smoking around friends and alcohol [@shiffman_smoking_2012; @shiffman_smoking_2014]. Despite these differences, daily and non-daily smokers find it difficult to quit smoking long-term, with 77-92% of daily smokers and 74-83% of non-daily smokers relapsing within 90 days of a quit attempt [@bogdanovica_smoking_2011; @kotz_very_2012; @tindle_smoking_2011]. This means it is important to investigate potential factors associated with the maintenance of smoking behaviour.     
+Historically, smokers have been treated as a single homogeneous group [@shiffman_light_2009], but there are fundamental differences in the smoking habits and motives of daily and non-daily smokers [@shiffman_characteristics_2012; @shiffman_smoking_2012]. 13-36% of smokers are defined as non-daily smokers across Europe and the United States [@bogdanovica_smoking_2011; @kotz_very_2012; @tindle_smoking_2011], and non-daily smoking has typically been the most prevalent pattern in ethnic minority groups [@fagan_light_2009; @tong_nondaily_2006]. Whereas daily smokers cite negative reinforcers such as avoiding nicotine withdrawal as the key motivators, non-daily smokers cite positive reinforcers such as smoking around friends and alcohol [@shiffman_smoking_2012; @shiffman_smoking_2014]. Despite these differences, daily and non-daily smokers find it difficult to quit smoking long-term, with 77-92% of daily smokers and 74-83% of non-daily smokers relapsing within 90 days of a quit attempt [@bogdanovica_smoking_2011; @kotz_very_2012; @tindle_smoking_2011]. This means it is important to investigate potential factors associated with the maintenance of smoking behaviour.     
 
-Attentional bias is the tendency to fixate attention on cues associated with smoking [@field_attentional_2008]. It has a small positive relationship with craving [@field_meta-analytic_2009] and it is reportedly predictive of abstinence after one week of cessation [@powell_relapse_2010]. Previous research shows that in comparison to non-smokers, smokers exhibit greater attentional bias towards smoking-related cues [@baschnagel_using_2013; @ehrman_comparing_2002; @kang_individual_2012; @mogg_eye_2003]. However, when studies have included different smoking groups, the results have been less consistent. Some studies show that lighter smokers exhibit greater attentional bias than heavier smokers [@bradley_attentional_2003; @hogarth_attentional_2003; @mogg_attentional_2005]. On the other hand, heavier smokers exhibit greater attentional bias than lighter smokers [@chanon_attentional_2010; @vollstadt-klein_attention_2011; @zack_effects_2001]. Despite most studies using the visual probe task, there were inconsistent sample and design features that make it difficult to make strong conclusions about the inconsistent findings. This study focused on comparing attentional bias towards smoking cues in daily and non-daily smokers, and manipulating how long the images are displayed for within the task.  
+Attentional bias is the tendency to fixate attention on cues associated with smoking [@field_attentional_2008] and it has a small positive relationship with craving [@field_meta-analytic_2009]. Previous research shows that in comparison to non-smokers, smokers exhibit greater attentional bias towards smoking-related cues [@baschnagel_using_2013; @ehrman_comparing_2002; @kang_individual_2012; @mogg_eye_2003]. However, when studies have included different smoking groups, the results have been less consistent. Some studies show that lighter smokers exhibit greater attentional bias than heavier smokers [@bradley_attentional_2003; @hogarth_attentional_2003; @mogg_attentional_2005]. On the other hand, heavier smokers exhibit greater attentional bias than lighter smokers [@chanon_attentional_2010; @vollstadt-klein_attention_2011; @zack_effects_2001]. Despite most studies using the visual probe task, there were inconsistent sample and design features that complicate making conclusions about the mixed findings. This study focused on comparing attentional bias towards smoking cues in daily and non-daily smokers, and manipulating how long the images are displayed for within the task.  
 
-The visual probe task infers attention through differences in response time (RT). Two images are presented and when they disappear, the participant is required to indicate the location of a small probe that replaces one of the images. Faster RTs to particular stimuli reflect selective attention [@field_attentional_2008], but as the location of attention is inferred through differences in RT after the stimuli disappear, the stimuli presentation time can be manipulated. Short stimulus onset asynchronies (SOA) of 200ms or less measure involuntary attentional processes [@field_attentional_2008]. Longer SOAs of 500ms or more target voluntary attention as there is enough time to make multiple fixations. Previous research used single SOAs of 500ms [@vollstadt-klein_attention_2011] and 2000ms [@hogarth_attentional_2003; @mogg_attentional_2005]. None of the studies used a very short SOA to measure more involuntary attentional processes. @chanon_attentional_2010 found that in comparison to non-smokers, attentional bias was greater in smokers under a 200ms conditions than a 550ms condition. To investigate the conflict in results between daily and non-daily smokers, this study used two SOAs of 200ms and 500ms. 
+The visual probe task infers attention through differences in response time (RT). Two images are presented and when they disappear, the participant is required to indicate the location of a small probe that replaces one of the images. Faster RTs to particular stimuli reflect selective attention [@field_attentional_2008], but as the location of attention is inferred through differences in RT after the stimuli disappear, the presentation time can be manipulated. Short stimulus onset asynchronies (SOA) of 200ms or less measure involuntary attentional processes [@field_attentional_2008]. Longer SOAs of 500ms or more target voluntary attention as there is enough time to make multiple fixations. Previous research used single SOAs of 500ms [@vollstadt-klein_attention_2011] and 2000ms [@hogarth_attentional_2003; @mogg_attentional_2005]. None of the studies used a very short SOA to measure more involuntary attentional processes. @chanon_attentional_2010 found that in comparison to non-smokers, attentional bias was greater in smokers under a 200ms conditions than a 550ms condition. To investigate the conflict in results between daily and non-daily smokers, this study used two SOAs of 200ms and 500ms. 
 
-A final consideration of our study was to evaluate and report the internal consistency of the visual probe task. There is growing awareness that the reliability of cognitive tasks should be taken seriously [@parsons_psychological_2019]. This is not necessarily a problem for experimental research as the tasks are designed to emphasise difference between groups or conditions [@hedge_reliability_2018]. However, reliability is crucial for repeated testing or measuring individual differences. As researchers often use the visual probe task as a measure in cognitive bias modification procedures, it should have the ability to reliably detect any changes across time. Previous attempts at evaluating the reliability of the visual probe task have been disappointing [@schmukle_unreliability_2005; @ataya_internal_2012; @waechter_measuring_2014]. Therefore, we are following recommendations [@parsons_psychological_2019] to habitually report the reliability of cognitive tasks, even when it is not the main focus of the study.  
+A final consideration of our study was to evaluate and report the internal consistency of the visual probe task. There is growing awareness that the reliability of cognitive tasks should be taken seriously [@parsons_psychological_2019]. This is not necessarily a problem for experimental research as the tasks are designed to emphasise differences between groups or conditions [@hedge_reliability_2018]. However, reliability is crucial for repeated testing or measuring individual differences. As researchers often use the visual probe task as a measure in cognitive bias modification procedures, it should have the ability to reliably detect any changes across time. Previous attempts at evaluating the reliability of the visual probe task have been disappointing [@schmukle_unreliability_2005; @ataya_internal_2012; @waechter_measuring_2014]. Therefore, we are following recommendationsto habitually report the reliability of cognitive tasks [@parsons_psychological_2019], even when it is not the main focus of the study.  
 
 The protocol and hypotheses for this project were pre-registered on the Open Science Framework (OSF; https://osf.io/am9hd/). We hypothesised non-daily smokers would show greater attentional bias than daily smokers. There was no *a priori* hypothesis for the effect of SOA condition. This means we expected non-daily smokers to show greater attentional bias than daily smokers, but it was not clear what the difference in magnitude would be under different SOA conditions. 
 
