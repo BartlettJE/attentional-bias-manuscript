@@ -155,11 +155,11 @@ We used a 2 x 2 mixed design with one between-subjects IV of smoking group with 
 
 ## Participants and Sample Size Calculation
 
-We collected data online using Prolific where participants were paid £2 for a 20 minute study. Inclusion criteria included all participants should have normal or corrected-normal vision, be between the ages of 18 to 60, and smoke at least one cigarette per week or four cigarettes per month.
+We collected data online using Prolific where inclusion criteria consisted of participants should have normal or corrected-normal vision, be between the ages of 18 to 60, and smoke at least one cigarette per week or four cigarettes per month.
 
-We simulated a power analysis to inform the sample size. We set the smallest effect size of interest based on a previously unpublished study in our lab [@bartlett_daily_2020] where the mean difference in attentional bias score between smoking groups was 6.13ms (95% CI = [-5.27, 17.53]) for a 200ms SOA and 11.35ms (95% CI = [-4.51, 27.21] for a 500ms SOA. However, we also consulted previous research due to the wide confidence intervals. The smallest known effects for a 200ms SOA was 5ms [@chanon_attentional_2010] and 11ms for a 500ms SOA [@bradley_attentional_2003]. Our smallest effect sizes of interest were 5ms (200ms) and 10ms (500ms), and a conservative standard deviation estimate of 20ms based on @vollstadt-klein_attention_2011. 
+We simulated a power analysis to inform the sample size. We set the smallest effect size of interest based on a previously unpublished study in our lab [@bartlett_daily_2020] where the mean difference in attentional bias score between smoking groups was 6.13ms (95% CI = [-5.27, 17.53]) for a 200ms SOA and 11.35ms (95% CI = [-4.51, 27.21] for a 500ms SOA. However, we also consulted previous research due to the wide confidence intervals. The smallest known effects for a 200ms SOA was 5ms [@chanon_attentional_2010] and 11ms for a 500ms SOA [@bradley_attentional_2003]. Our smallest effect sizes of interest were 5ms (200ms) and 10ms (500ms), and a conservative standard deviation of 20ms based on @vollstadt-klein_attention_2011. 
 
-These values were used to conduct a simulated power analysis for a 2 x 2 mixed ANOVA using R. The code for the power analysis can be found in the pre-registration protocol (https://osf.io/am9hd/). We expected non-daily smokers to display greater attentional bias towards smoking cues than daily smokers. We set the conditions of the power analysis as non-daily smokers having a 5ms (200ms) and 10ms (500ms) greater mean difference in attentional bias score than daily smokers. For each condition, the values were sampled from a normal distribution with a standard deviation of 20ms. The sample size for each smoking group was increased from 10 (N = 20) to 150 (N = 300) in steps of 10, with each step repeating 10,000 times. The final sample size target was 60 per group (N = 120) as we reached 80% power (alpha = .05) between 50 and 60 participants per group.  
+These values were used to conduct a simulated power analysis for a 2 x 2 mixed ANOVA using R (code avaikable on the [OSF](https://osf.io/am9hd/)). We expected non-daily smokers to display greater attentional bias towards smoking images than daily smokers. We set the conditions of the power analysis as non-daily smokers having a 5ms (200ms) and 10ms (500ms) greater mean difference than daily smokers. For each condition, the values were sampled from a normal distribution with a standard deviation of 20ms. The sample size for each smoking group was increased from 10 (N = 20) to 150 (N = 300) in steps of 10, with each step repeating 10,000 times. The final sample size target was 60 per group (N = 120) as we reached 80% power (alpha = .05) between 50 and 60 participants per group.
 
 ## Materials 
 
@@ -184,12 +184,13 @@ The FTCD [@fagerstrom_determinants_2012; @heatherton_fagerstrom_1991] was used a
 
 ### Visual Probe Task
 
-We used Gorilla [@anwyl-irvine_gorilla_2019] to present the visual probe task in participant's browsers. Each trial started with a 250ms central fixation cross before two images were presented horizontally to the left and right. The fixation cross remained on the screen to ensure its appearance did not compete for attention [@chanon_attentional_2010]. The pictures remained on the screen for either 200ms or 500ms depending on the SOA condition. At picture offset, a small dot appeared in the location vacated by one of the images. The dot remained on the screen until the participant responded either left (Z key) or right (M key). After they responded, the screen containing only the fixation cross appeared to signal the start of the next trial. 
+We used Gorilla [@anwyl-irvine_gorilla_2019] to present the visual probe task online. Each trial started with a 250ms central fixation cross before two images were presented horizontally to the left and right. The pictures remained on the screen for either 200ms or 500ms depending on the SOA condition. At picture offset, a small dot appeared in the location vacated by one of the images. The dot remained on the screen until the participant responded either left (Z key) or right (M key). After they responded, the screen containing only the fixation cross appeared to signal the start of the next trial. 
+
 The task consisted of 16 image pairs for neutral trials and 16 image pairs for smoking/non-smoking trials. We developed the matching smoking and non-smoking images in our lab [@bartlett_daily_2020] and we created neutral trials using 16 image pairs from the IAPS [@lang_international_2008]. The trial order was randomised with each picture pair presented four times to cover each combination of image (left and right) and dot location (left and right). For each picture pair, this process was repeated for each SOA condition. This procedure was repeated twice and presented in two blocks, creating 384 trials overall with 64 trials in each SOA and trial type condition.  
 
 ## Procedure 
 
-We provided participants with an information sheet and they provided informed consent by ticking a box. This study was approved by the Faculty of Health and Life Sciences Ethical Approval board. Participants completed a short questionnaire on their demographic information, smoking habits, and the FTCD. The next page contained the visual probe task which began with a set of instructions asking the participant to complete the task in a quiet environment free of distractions. Participants completed 12 practice trials which provided feedback on their responses and overall accuracy. The practice trials contained additional images from the IAPS which were not included in the experimental trials. After the task, participants completed four questions on their experience completing the study. These included whether they experienced any technical issues, whether they used an ineligible device, and if they had completed the study before. Similar to @clifford_is_2014, we asked participants if they had any distractions while they completed the study such as listening to music. Finally, participants read a debriefing sheet before they were redirected to Prolific. If the participants successfully reached the end of the study, they were paid £2.
+We provided participants with an information sheet and they provided informed consent by ticking a box. This study was approved by the Faculty of Health and Life Sciences Ethical Approval board. Participants completed a short questionnaire on their demographic information, smoking habits, and the FTCD. The next page contained the visual probe task which began with a set of instructions asking the participant to complete the task in a quiet environment free of distractions. Participants completed 12 practice trials which provided feedback on their responses and overall accuracy. After the task, participants reported whether they experienced any technical issues, whether they used an ineligible device, and if they had completed the study before. Similar to @clifford_is_2014, we asked participants if they had any distractions while they completed the study such as listening to music. Finally, participants read a debriefing sheet before they were redirected to Prolific. If the participants successfully reached the end of the study, they were paid £2.
 
 # Results
 
@@ -306,9 +307,9 @@ save_plot(plot = smoking_plot,
           base_width = 7.5)
 ```
 
-218 people accessed the study and 205 completed the experiment and received payment. The final sample was 166 after applying exclusion criteria, with 60 non-daily and 106 daily smokers. Participants were excluded for having fewer than 50% of the possible trials (n = 4), experiencing technical issues (n = 16), reporting to smoke every day but not every week (n = 3), and not smoking in the past four weeks (n = 19). The total number equals 42 as some participants met more than one criterion.   
+218 people accessed the study and 205 completed the experiment and received payment. The final sample was 166 after applying exclusion criteria: 60 non-daily and 106 daily smokers. Participants were excluded for having fewer than 50% of the possible trials (n = 4), experiencing technical issues (n = 16), reporting to smoke every day but not every week (n = 3), and not smoking in the past four weeks (n = 19). The total number equals 42 as some participants met more than one criterion.   
 
-The key demographic information is presented in Table \@ref(tab:demographics-table). Daily smokers smoked more cigarettes per day and had a higher FTCD score. Non-daily smokers exemplified infrequent smoking as the median time since their last cigarette was 48 hours, while it was only one hour for daily smokers. Figure \@ref(fig:smoking-plot) shows the distribution of FTCD scores and cigarettes per day. Most non-daily smokers report low values, while daily smokers are distributed more evenly. 
+Table \@ref(tab:demographics-table) displays the demographic information. Daily smokers smoked more cigarettes per day and had a higher FTCD score. Non-daily smokers exemplified infrequent smoking as the median time since their last cigarette was 48 hours, while it was only one hour for daily smokers. Figure \@ref(fig:smoking-plot) shows the distribution of FTCD scores and cigarettes per day.
 
 ```{r demographics-table}
 # Use papaja helper function to create a pretty table 
@@ -414,7 +415,7 @@ interaction.plot
 
 ```
 
-We used a 2x2 mixed ANOVA with SOA as a within-subjects IV and smoking group as a between-subjects IV. The mean attentional bias index was the DV. There was not a significant effect of SOA (`r format.afex_anova(anov, 2)`) or smoking group (`r format.afex_anova(anov, 1)`). There was also no significant interaction between the two factors, `r format.afex_anova(anov, 3)`. This did not support our prediction that non-daily smokers would show greater attentional bias towards smoking cues than daily smokers.  
+We used a 2x2 mixed ANOVA with SOA as a within-subjects IV and smoking group as a between-subjects IV. The mean attentional bias index was the DV. There was not a significant effect of SOA (`r format.afex_anova(anov, 2)`) or smoking group (`r format.afex_anova(anov, 1)`). There was also no significant interaction between the two factors, `r format.afex_anova(anov, 3)`. This did not support our prediction that non-daily smokers would show greater attentional bias than daily smokers.  
 
 ## Exploratory Analyses: No Meaningful Difference in Attentional Bias 
 
@@ -494,9 +495,7 @@ save_plot(plot = TOST_plot,
   
 ```
 
-The results did not support our hypotheses, but *p*-values in isolation do not provide evidence in favour of the null. To demonstrate there was no meaningful difference between daily and non-daily smokers, we performed equivalence testing on the two comparisons of interest: the difference between daily and non-daily smokers at each SOA condition. 
-
-Previous research has not outlined what are meaningful effects sizes, therefore we set the effect size boundaries as Cohen's d = ±0.41. This is based on the small telescopes method [@lakens_equivalence_2018] for the effect size the largest previous study had 33% power to detect (@vollstadt-klein_attention_2011 with two groups of 25 and 26 participants).  
+To demonstrate there was no meaningful difference between daily and non-daily smokers, we performed equivalence testing on the two comparisons of interest: the difference between daily and non-daily smokers at each SOA condition. We set the effect size boundaries as Cohen's d = ±0.41 based on the small telescopes method [@lakens_equivalence_2018] for the effect size the largest previous study had 33% power to detect (@vollstadt-klein_attention_2011 with two groups of 25 and 26 participants).  
 
 For the 200ms SOA condition, the two one-sided test procedure was significant, demonstrating that the difference in attentional bias towards smoking cues between daily and non-daily smokers was statistically equivalent to zero, `r format.TOST(SOA200)`. Similarly, the 500ms SOA condition was statistically equivalent to zero, `r format.TOST(SOA500)`. The equivalence testing procedure is presented in Figure \@ref(fig:TOST-plot), showing that the 90% confidence interval around the mean difference crosses zero, but does not cross the effect size boundaries of d = ±.41 (expressed here in raw units). 
 
@@ -577,7 +576,7 @@ alpha.500 <- psych::alpha(rel.analysis[2:17],
              n.iter = 1e4)
 ```
 
-Following calls to report the reliability of cognitive tasks [@parsons_psychological_2019], we calculated Cronbach's alpha for the attentional bias index across the 16 stimulus pairs. This was poor for both the 200ms ($\alpha$ = `r format.alpha(alpha.200)`) and 500ms ($\alpha$ = `r format.alpha(alpha.500)`) SOA conditions. 
+We calculated Cronbach's alpha for the attentional bias index across the 16 stimulus pairs which was poor for both the 200ms ($\alpha$ = `r format.alpha(alpha.200)`) and 500ms ($\alpha$ = `r format.alpha(alpha.500)`) SOA conditions. 
 
 ```{r split half reliability, message=F, warning=F, results="hide"}
 
