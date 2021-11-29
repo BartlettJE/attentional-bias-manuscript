@@ -4,25 +4,20 @@ shorttitle        : "This is a preprint before peer review"
 
 author: 
   - name          : "James E Bartlett"
-    affiliation   : "1,2"
+    affiliation   : "1"
     corresponding : yes    # Define only one corresponding author
     address       : "62 Hillhead Street, University of Glasgow, Glasgow, United Kingdom"
     email         : "james.bartlett@glasgow.ac.uk"
   - name          : "Rebecca Jenks"
     affiliation   : "1"
   - name          : "Nigel Wilson"
-    affiliation   : "1,3"
+    affiliation   : "1"
 
 affiliation:
   - id            : "1"
     institution   : "School of Psychological, Social, and Behavioural Sciences, Coventry University"
-  - id            : "2"
-    institution   : "School of Psychology and Neuroscience, University of Glasgow"
-  - id            : "3"
-    institution   : "School of Psychology and Social Science, Arden University"
 
 authornote: |
-  A draft of this manuscript was posted as a preprint on PsyArXiv and ResearchGate. The results were included in a presentation at the SSA PhD Symposium 2019. The data collected for this manuscript have not been reported in another article. 
 
 abstract: |
    Both daily and non-daily smokers find it difficult to quit smoking long-term. One factor associated with addictive behaviour is attentional bias, but previous research in daily and non-daily smokers found inconsistent results and did not report the reliability of their cognitive tasks. Using an online sample, we compared daily (n = 106) and non-daily (n = 60) smokers in their attentional bias towards smoking pictures. Participants completed a visual probe task with two picture presentation times: 200ms and 500ms. In confirmatory analyses, there were no significant effects of interest, and in exploratory analyses, equivalence testing showed the effects were statistically equivalent to zero. The internal consistency of the visual probe task was poor, meaning it should not be used for repeated testing or investigating individual differences. The results can be interpreted in line with contemporary theories of attentional bias where there are unlikely to be stable trait-level differences between smoking groups. Future research in attentional bias should focus on state-level differences using more reliable measures than the visual probe task.
