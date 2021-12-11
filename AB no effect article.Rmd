@@ -130,6 +130,16 @@ dat <- dat %>%
 
 ```
 
+# Take-home message
+
+Previous research reported greater attentional bias in daily or non-daily smokers using the dot probe task, but we found no meaningful difference. Our visual probe task also showed poor reliability, meaning the task should not be used in individual differences research or measuring changes in attentional bias across repeated measurements.  
+
+# Purpose 
+
+Daily and non-daily smokers have different habits and motives but both groups find it difficult to quit smoking long-term. As attentional bias may be associated with addictive behaviour, we used the visual probe task to compare daily and non-daily smokers. We predicted that non-daily smokers would show greater attentional bias towards smoking images than daily smokers. If non-daily smokers showed greater attentional bias, it would help to explain why they find it difficult to quit smoking while showing fewer signs of nicotine dependence.  
+
+\newpage
+
 # Introduction
 
 Historically, smokers have been treated as a single homogeneous group [@shiffman_light_2009], but there are fundamental differences in the smoking habits and motives of daily and non-daily smokers [@shiffman_characteristics_2012; @shiffman_smoking_2012]. 13-36% of smokers are defined as non-daily smokers across Europe and the United States [@bogdanovica_smoking_2011; @kotz_very_2012; @tindle_smoking_2011], and non-daily smoking has typically been the most prevalent pattern in ethnic minority groups [@fagan_light_2009; @tong_nondaily_2006]. Whereas daily smokers cite negative reinforcers such as avoiding nicotine withdrawal as the key motivators, non-daily smokers cite positive reinforcers such as smoking around friends and alcohol [@shiffman_smoking_2012; @shiffman_smoking_2014]. Despite these differences, daily and non-daily smokers find it difficult to quit smoking long-term, with 77-92% of daily smokers and 74-83% of non-daily smokers relapsing within 90 days of a quit attempt [@bogdanovica_smoking_2011; @kotz_very_2012; @tindle_smoking_2011]. This means it is important to investigate potential factors associated with the maintenance of smoking behaviour.     
@@ -642,20 +652,6 @@ The online nature of the study meant participants’ smoking levels could not be
 
 Using the largest known sample size to investigate attentional bias towards smoking cues, we found using equivalence tesing that there was no meaningful difference between daily and non-daily smokers. The results can be interpreted in line with contemporary theories of attentional bias where there may not be stable trait-level differences between smoking groups in attentional bias. Future research should focus on investigating how attentional bias fluctuates over time using more reliable measures than the visual probe task. 
 \newpage
-
-# Disclosures
-
-## Data, code, and materials
-The data and code to reproduce these analyses is available at https://osf.io/am9hd/. The OSF project contains all necessary files to reproduce the analyses and figures. The visual probe task was created in Gorilla, and the task can be found using the open materials page at https://gorilla.sc/openmaterials/85021. 
-\newline
-
-## Declarations of Interest
-We have no conflicts of interest to declare.
-\newline
-
-## CRediT contributions
-Conceptualization (JEB, RJ, NW); Methodology (JEB, RJ, NW); Formal analysis (JEB); Investigation (JEB); Data curation (JEB); Writing - original draft (JEB); Writing - Review & editing (JEB, RJ, NW); Supervision (RJ, NW)
-\newline
 
 ## R Package Acknowledgements
 ```{r r packages}
