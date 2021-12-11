@@ -1,5 +1,5 @@
 ---
-title             : "No Difference in Trait-Level Attentional Bias Between Daily and Non-Daily Smokers"
+title             : "No Meaningful Difference in Attentional Bias Between Daily and Non-Daily Smokers"
 shorttitle        : "This is a preprint before peer review"
 
 author: 
@@ -22,7 +22,7 @@ authornote: |
 abstract: |
    Both daily and non-daily smokers find it difficult to quit smoking long-term. One factor associated with addictive behaviour is attentional bias, but previous research in daily and non-daily smokers found inconsistent results and did not report the reliability of their cognitive tasks. Using an online sample, we compared daily (n = 106) and non-daily (n = 60) smokers in their attentional bias towards smoking pictures. Participants completed a visual probe task with two picture presentation times: 200ms and 500ms. In confirmatory analyses, there were no significant effects of interest, and in exploratory analyses, equivalence testing showed the effects were statistically equivalent to zero. The internal consistency of the visual probe task was poor, meaning it should not be used for repeated testing or investigating individual differences. The results can be interpreted in line with contemporary theories of attentional bias where there are unlikely to be stable trait-level differences between smoking groups. Future research in attentional bias should focus on state-level differences using more reliable measures than the visual probe task.
  
-keywords          : "Non-daily smokers, Visual probe task, Attentional bias, Equivalence testing"
+keywords          : "Non-daily smokers, Daily smokers, Visual probe task, Attentional bias, Equivalence testing"
 wordcount         : "3550"
 
 bibliography      : ["references.bib", "r-references.bib"]
@@ -33,7 +33,7 @@ figurelist        : no
 tablelist         : no
 footnotelist      : no
 linenumbers       : yes
-mask              : no
+mask              : yes
 draft             : no
 
 documentclass     : "apa6"
