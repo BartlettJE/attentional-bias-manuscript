@@ -38,7 +38,7 @@ draft             : no
 
 documentclass     : "apa6"
 classoption       : "man"
-output            : papaja::apa6_pdf
+output            : papaja::apa6_word
 ---
 
 ```{r setup, include = FALSE}
@@ -307,7 +307,7 @@ smoking_plot <- plot_grid(CPD.plot, FTCD.plot,
           ncol = 1, nrow = 2, labels = c("A", "B"))
 
 save_plot(plot = smoking_plot,
-          filename = "plots/CPD and FTCD plot.pdf",
+          filename = "plots/CPD and FTCD plot.png",
           base_height = 7.5, 
           base_width = 7.5)
 ```
@@ -407,7 +407,7 @@ interaction.plot <- afex_plot(anov,
   theme_cowplot()
 
 save_plot(plot = interaction.plot,
-          filename = "plots/AB interaction plot.pdf",
+          filename = "plots/AB interaction plot.png",
           base_height = 7.5, 
           base_width = 10)
 ```
@@ -494,7 +494,7 @@ TOST_plot <- equivalence_dat %>%
   coord_flip()
 
 save_plot(plot = TOST_plot, 
-          filename = "plots/TOST plot.pdf",
+          filename = "plots/TOST plot.png",
           base_height = 7.5, 
           base_width = 10)
   
