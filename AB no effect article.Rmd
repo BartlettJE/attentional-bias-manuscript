@@ -453,8 +453,9 @@ In our preregistration protocol, we focused on the attentional bias index as our
 trial_analysis <- ab_analysis %>% 
   pivot_longer(cols = c(nonsmoking, smoking), names_to = "condition", values_to = "RT") %>% 
   mutate(AB = case_when(ab_index < 0 ~ 0, # Do participants show positive or negative AB effect? 
-                        ab_index > 0 ~1))
+                        ab_index > 0 ~ 1))
 
+# Average AB effect for each group / SOA condition
 trial_analysis %>% 
   group_by(smoke_everyday, soa) %>% 
   summarise(perc_ab = mean(AB))
