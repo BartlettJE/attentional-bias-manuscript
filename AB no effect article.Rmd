@@ -70,10 +70,10 @@ knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 ```{r main data, message=F, warning=F, include=F}
 # Download the two datafiles 
 # demographics contains information such as age, gender etc. in short form 
-full_dat <- read_csv("data/OSF_demographics.csv")
+full_dat <- read_csv("OSF_demographics.csv")
 
 # visual probe task data contains task data in long form 
-dat <- read_csv(file = "data/OSF_visual_probe_task.csv")
+dat <- read_csv(file = "OSF_visual_probe_task.csv")
 
 # Use janitor package to clear names to snake case for easier typing 
 dat <- clean_names(dat, case = "snake")
@@ -322,10 +322,10 @@ FTCD.plot <- full_dat %>%
 smoking_plot <- plot_grid(CPD.plot, FTCD.plot,
           ncol = 1, nrow = 2, labels = c("A", "B"))
 
-save_plot(plot = smoking_plot,
-          filename = "plots/CPD and FTCD plot.png",
-          base_height = 7.5, 
-          base_width = 7.5)
+# save_plot(plot = smoking_plot,
+#           filename = "plots/CPD and FTCD plot.png",
+#           base_height = 7.5, 
+#           base_width = 7.5)
 ```
 
 218 people accessed the study and 205 completed the experiment and received payment. The final sample was 166 after applying exclusion criteria: 60 non-daily and 106 daily smokers. Participants were excluded for having fewer than 50% of the possible trials (n = 4), experiencing technical issues (n = 16), reporting to smoke every day but not every week (n = 3), and not smoking in the past four weeks (n = 19). The total number equals 42 as some participants met more than one criterion.   
@@ -428,10 +428,10 @@ interaction.plot <- afex_plot(anov,
   scale_color_grey(start = 0, end = 0.5) + 
   theme_cowplot()
 
-save_plot(plot = interaction.plot,
-          filename = "plots/AB interaction plot.png",
-          base_height = 7.5, 
-          base_width = 10)
+# save_plot(plot = interaction.plot,
+#           filename = "plots/AB interaction plot.png",
+#           base_height = 7.5, 
+#           base_width = 10)
 ```
 
 (ref:interaction-plot-caption) Interaction plot showing the mean attentional bias index for daily and non-daily smokers by SOA condition. The error bars represent the 95% CI around the mean. Positive values indicate greater attentional bias towards smoking cues. The grey points show the individual scores per condition.
@@ -443,6 +443,50 @@ interaction.plot
 ```
 
 We used a 2x2 mixed ANOVA with SOA as a within-subjects IV and smoking group as a between-subjects IV. The mean attentional bias index was the DV. There was not a significant effect of SOA (`r format.afex_anova(anov, 2)`) or smoking group (`r format.afex_anova(anov, 1)`). There was also no significant interaction between the two factors, `r format.afex_anova(anov, 3)`. This did not support our prediction that non-daily smokers would show greater attentional bias towards smoking images than daily smokers.  
+
+## Exploratory Analyses: Including trial type as an additional IV
+
+In our preregistration protocol, we focused on the attentional bias index as our outcome for confirmatory analyses, calculating it from the difference between smoking and neutral trials. While there were no significant differences between smoking groups or SOA conditions, both peer-reviewers questioned whether participants showed an attentional bias effect towards smoking images. Therefore, we performed exploratory analyses where we included trial type as an additional within-subjects IV and used response time (ms) as our outcome. 
+
+```{r trial type analyses}
+
+trial_analysis <- ab_analysis %>% 
+  pivot_longer(cols = c(nonsmoking, smoking), names_to = "condition", values_to = "RT") %>% 
+  mutate(AB = case_when(ab_index < 0 ~ 0, # Do participants show positive or negative AB effect? 
+                        ab_index > 0 ~1))
+
+trial_analysis %>% 
+  group_by(smoke_everyday, soa) %>% 
+  summarise(perc_ab = mean(AB))
+
+# Calculate 2x2x2 ANOVA using afex 
+anov_trial <- aov_ez(id = "participant_private_id",
+       dv = "RT", 
+       between = "smoke_everyday",
+       within = c("soa", "condition"),
+       data = trial_analysis)
+
+# Interaction plot for 2x2x2 design
+trial.plot <- afex_plot(anov_trial, 
+          x = "smoke_everyday", 
+          trace = "condition", 
+          panel = "soa",
+          error_ci = T, # Show 95% CI 
+          legend_title = "Trial type",
+          point_arg = list(size = 2),
+          error_arg = list(size = 1, width = 0.1),
+          line_arg = list(size = 1),
+          mapping = c("color", "shape", "fill"))
+
+trial_analysis %>% 
+  ggplot(aes(x = condition, y = RT, group = participant_private_id, colour = as.factor(AB))) + 
+  geom_point() + 
+  geom_line()
+
+```
+
+
+Enter results. 
 
 ## Exploratory Analyses: No Meaningful Difference in Attentional Bias 
 
@@ -515,10 +559,10 @@ TOST_plot <- equivalence_dat %>%
   # flip on it's side to visualise easier 
   coord_flip()
 
-save_plot(plot = TOST_plot, 
-          filename = "plots/TOST plot.png",
-          base_height = 7.5, 
-          base_width = 10)
+# save_plot(plot = TOST_plot, 
+#           filename = "plots/TOST plot.png",
+#           base_height = 7.5, 
+#           base_width = 10)
   
 ```
 
