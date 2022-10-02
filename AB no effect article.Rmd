@@ -70,10 +70,10 @@ knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 ```{r main data, message=F, warning=F, include=F}
 # Download the two datafiles 
 # demographics contains information such as age, gender etc. in short form 
-full_dat <- read_csv("OSF_demographics.csv")
+full_dat <- read_csv("Data/OSF_demographics.csv")
 
 # visual probe task data contains task data in long form 
-dat <- read_csv(file = "OSF_visual_probe_task.csv")
+dat <- read_csv(file = "Data/OSF_visual_probe_task.csv")
 
 # Use janitor package to clear names to snake case for easier typing 
 dat <- clean_names(dat, case = "snake")
@@ -172,7 +172,9 @@ These values were used to conduct a simulated power analysis for a 2 x 2 mixed A
 
 ### Fagerström Test for Cigarette Dependence (FTCD)
 
-```{r FTCD internal consistency}
+```{r FTCD internal consistency, eval=FALSE}
+
+# Eval = FALSE to read from object file
 
 # Number of iterations for bootstrapping
 iters <- 1e4 # 10,000
@@ -185,6 +187,14 @@ FTCD_reliability <- FTCD_reliability[complete.cases(FTCD_reliability), ]
 
 # Save Cronbach's alpha object with bootstrapping 
 FTCD.alpha <- psych::alpha(FTCD_reliability, n.iter = iters)
+
+write_rds(FTCD.alpha, file = "Data/FTCD Alpha Object.Rds")
+```
+
+```{r read alpha object}
+
+FTCD.alpha <- read_rds("Data/FTCD Alpha Object.Rds")
+
 ```
 
 The FTCD [@fagerstrom_determinants_2012; @heatherton_fagerstrom_1991] was used as a self-report measure of nicotine dependence. The Cronbach's alpha estimate (bootstrapped using 10,000 iterations) in this sample was higher than in previous research, $\alpha$ = `r format.alpha(FTCD.alpha)`.
@@ -293,7 +303,7 @@ CPD.plot <- full_dat %>%
   xlab("Smoking Group") + 
   scale_x_discrete(labels=c("Non-daily", "Daily")) + 
   ylab("Cigarettes Per Day") + 
-  scale_fill_grey(start = 0, end = 0.5) + 
+  scale_fill_manual(values = c("#1f78b4", "#a6cee3")) + 
   coord_flip() + 
   guides(fill = FALSE) +
   guides(color = FALSE) + 
@@ -310,7 +320,7 @@ FTCD.plot <- full_dat %>%
   xlab("Smoking Group") + 
   scale_x_discrete(labels=c("Non-daily", "Daily")) + 
   ylab("Total FTCD Score") + 
-  scale_fill_grey(start = 0, end = 0.5) + 
+  scale_fill_manual(values = c("#1f78b4", "#a6cee3")) + 
   scale_y_continuous(breaks = seq(0, 10, 2),
                      limits = c(0, 10)) + 
   coord_flip() + 
@@ -425,7 +435,7 @@ interaction.plot <- afex_plot(anov,
   geom_hline(yintercept = 0, linetype = 2) + # Display 0 AB index for reference 
   scale_y_continuous(breaks = seq(-100, 100, 25),
                      limits = c(-100, 100)) + 
-  scale_color_grey(start = 0, end = 0.5) + 
+  scale_colour_manual(values = c("#a6cee3", "#1f78b4")) + 
   theme_cowplot()
 
 # save_plot(plot = interaction.plot,
@@ -443,51 +453,6 @@ interaction.plot
 ```
 
 We used a 2x2 mixed ANOVA with SOA as a within-subjects IV and smoking group as a between-subjects IV. The mean attentional bias index was the DV. There was not a significant effect of SOA (`r format.afex_anova(anov, 2)`) or smoking group (`r format.afex_anova(anov, 1)`). There was also no significant interaction between the two factors, `r format.afex_anova(anov, 3)`. This did not support our prediction that non-daily smokers would show greater attentional bias towards smoking images than daily smokers.  
-
-## Exploratory Analyses: Including trial type as an additional IV
-
-In our preregistration protocol, we focused on the attentional bias index as our outcome for confirmatory analyses, calculating it from the difference between smoking and neutral trials. While there were no significant differences between smoking groups or SOA conditions, both peer-reviewers questioned whether participants showed an attentional bias effect towards smoking images. Therefore, we performed exploratory analyses where we included trial type as an additional within-subjects IV and used response time (ms) as our outcome. 
-
-```{r trial type analyses}
-
-trial_analysis <- ab_analysis %>% 
-  pivot_longer(cols = c(nonsmoking, smoking), names_to = "condition", values_to = "RT") %>% 
-  mutate(AB = case_when(ab_index < 0 ~ 0, # Do participants show positive or negative AB effect? 
-                        ab_index > 0 ~ 1))
-
-# Average AB effect for each group / SOA condition
-trial_analysis %>% 
-  group_by(smoke_everyday, soa) %>% 
-  summarise(perc_ab = mean(AB))
-
-# Calculate 2x2x2 ANOVA using afex 
-anov_trial <- aov_ez(id = "participant_private_id",
-       dv = "RT", 
-       between = "smoke_everyday",
-       within = c("soa", "condition"),
-       data = trial_analysis)
-
-# Interaction plot for 2x2x2 design
-trial.plot <- afex_plot(anov_trial, 
-          x = "smoke_everyday", 
-          trace = "condition", 
-          panel = "soa",
-          error_ci = T, # Show 95% CI 
-          legend_title = "Trial type",
-          point_arg = list(size = 2),
-          error_arg = list(size = 1, width = 0.1),
-          line_arg = list(size = 1),
-          mapping = c("color", "shape", "fill"))
-
-trial_analysis %>% 
-  ggplot(aes(x = condition, y = RT, group = participant_private_id, colour = as.factor(AB))) + 
-  geom_point() + 
-  geom_line()
-
-```
-
-
-Enter results. 
 
 ## Exploratory Analyses: No Meaningful Difference in Attentional Bias 
 
@@ -581,15 +546,73 @@ TOST_plot
 
 ```
 
+## Exploratory Analyses: Including trial type as an additional IV
+
+In our preregistration protocol, we focused on the attentional bias index as our outcome for confirmatory analyses, calculating it from the difference between smoking and neutral trials. While there were no meaningful differences between smoking groups, both peer-reviewers questioned whether participants first showed an attentional bias effect towards smoking images. Therefore, we performed exploratory analyses where we included trial type as an additional within-subjects IV instead of calculating the difference in RT between each condition. 
+
+```{r trial type analyses}
+
+trial_analysis <- ab_analysis %>% 
+  pivot_longer(cols = c(nonsmoking, smoking), names_to = "condition", values_to = "RT") %>% 
+  mutate(AB = case_when(ab_index < 0 ~ 0, # Do participants show positive or negative AB effect? 
+                        ab_index > 0 ~ 1))
+
+# Average AB effect for each group / SOA condition
+persons_effect <- trial_analysis %>%
+  group_by(smoke_everyday, soa) %>%
+  summarise(perc_ab = round(mean(AB)*100, 2))
+
+# Calculate 2x2x2 ANOVA using afex 
+anov_trial <- aov_ez(id = "participant_private_id",
+       dv = "RT", 
+       between = "smoke_everyday",
+       within = c("soa", "condition"),
+       data = trial_analysis)
+
+```
+
+We used a 2x2x2 mixed ANOVA using RT as our DV, trial type and SOA as within-subject IVs, and smoking group as a between-subjects IV. The only significant effect was SOA (`r format.afex_anova(anov_trial, 2)`), which in isolation is not theoretically meaningful to us. None of the other effects were statistically significant, which for brevity, we have included as supplementary material on our OSF project page. 
+
+Although there were no significant effects including trial type, we quantified whether participants showed an attentional bias effect towards smoking images using the persons as effect sizes approach [@grice_persons_2020]. Instead of a blanket mean difference between groups or conditions, you can quantify how many participants behaved consistent with theoretical predictions. In this context, we can ask how many participants showed faster RTs to smoking trials compared to non-smoking trials. 
+
+For each participant, we coded whether the difference in RT was negative (faster responses to non-smoking images) or positive (faster responses to smoking images), then calculated the percentage showing a positive effect for each smoking group and SOA condition. Participants rarely deviated from 50% showing the expected faster responses to smoking images. `r persons_effect[1, 3]`% of daily smokers in the 200ms and `r persons_effect[2, 3]`% in the 500ms SOA condition showed faster responses to smoking images. `r persons_effect[3, 3]`% of non-daily smokers in the 200ms SOA condition showed faster responses to smoking images, while `r persons_effect[4, 3]`% responded faster to smoking images in the 500ms SOA condition, suggesting more participants responded faster to non-smoking images. We visualised these results in Figure \@ref(fig:trial-plot) where each line represents a participant and the colour shows whether they responded faster to smoking or non-smoking images for each SOA condition and smoking group. Collectively, these exploratory analyses suggest participants did not display the predicted attentional bias effect towards smoking images.  
+
+(ref:trial-plot-caption) A dot plot visualising whether each participant showed the predicted attentional bias effect towards smoking images. Each line represents one participant where their average RT to non-smoking and smoking images is connected. Positive colour-coded slopes show participants who responded faster to non-smoking images while negative colour-coded slopes show participants who responded faster to smoking images. Each panel represents the combination of smoking group and SOA condition.    
+
+```{r trial-plot, fig.cap="(ref:trial-plot-caption)"}
+
+trial_analysis$smoke_everyday[trial_analysis$smoke_everyday == "Daily"] <- "Daily Smokers" 
+trial_analysis$smoke_everyday[trial_analysis$smoke_everyday == "Non-daily"] <- "Non-Daily Smokers" 
+
+# Persons as effect sizes
+trial_analysis %>% 
+  mutate(condition = factor(condition, labels = c("Non-Smoking", "Smoking")),
+         soa = factor(soa, labels = c("200ms SOA", "500ms SOA"))) %>% 
+  ggplot(aes(x = condition, y = RT, group = participant_private_id, colour = as.factor(AB))) + 
+  geom_point(alpha = 0.8) + 
+  geom_line(size = 0.8, alpha = 0.8) + 
+  facet_grid(smoke_everyday~soa) + 
+  theme_cowplot() + 
+  scale_colour_viridis_d(option="plasma", 
+                       begin=0.1, 
+                       end=0.8, 
+                       name = "Attentional Bias Effect",
+                       labels = c("Faster Non-Smoking", "Faster Smoking")) + 
+  labs(x = "Trial Type", y = "Response Time (ms)")
+
+```
+
 ## Exploratory Analyses: Visual Probe Task Reliability
 
-```{r cronbachs alpha, message=F, warning=F, results="hide"}
+```{r cronbachs alpha, message=F, warning=F, results="hide", eval=FALSE}
+# Eval set to false to save time - load objects below...
+
 # Calculate Cronbach's alpha for each SOA condition in visual probe task 
 # Follow procedure of Christiansen et al. (2015) to calculate AB index for each picture pair 
 # Produces 16 AB indexes for each SOA condition. Treat these as "items" to calculate internal consistency 
 
 # Begin by repeating processing for visual probe task data 
-rel.dat <- read_csv(file = "data/OSF_visual_probe_task.csv")
+rel.dat <- read_csv(file = "Data/OSF_visual_probe_task.csv")
 
 rel.dat <- clean_names(rel.dat, case = "snake")
 
@@ -648,11 +671,27 @@ rel.analysis <- rel.analysis %>%
 # Cronbach's alpha with 10,000 bootstraps 
 alpha.500 <- psych::alpha(rel.analysis[2:17],
              n.iter = 1e4)
+
+write_rds(alpha.200, "Data/Object Alpha 200ms SOA.Rds")
+write_rds(alpha.500, "Data/Object Alpha 500ms SOA.Rds")
+
+```
+
+```{r load alpha objects}
+
+# Save knitting time by reading .RDS object 
+
+alpha.200 <- read_rds("Data/Object Alpha 200ms SOA.Rds")
+
+alpha.500 <- read_rds("Data/Object Alpha 500ms SOA.Rds")
+
 ```
 
 We calculated Cronbach's alpha for the attentional bias index across the 16 stimulus pairs which was poor for both the 200ms ($\alpha$ = `r format.alpha(alpha.200)`) and 500ms ($\alpha$ = `r format.alpha(alpha.500)`) SOA conditions. 
 
-```{r split half reliability, message=F, warning=F, results="hide"}
+```{r split half reliability, message=F, warning=F, results="hide", eval=FALSE}
+
+# Eval = false to speed things up and load from .RDS file 
 
 # Parsons et al. (2019) criticised alpha for cognitive tasks and present split half reliability 
 # Calculate permutation split half reliability with 5000 iterations 
@@ -666,13 +705,22 @@ difference <- splithalf(data = dat,
                         var.RT = "reaction_time",
                         var.condition = "soa",
                         var.participant = "participant_private_id",
-                        var.trialnum = "trial_number",
+                        #var.trialnum = "trial_number",
                         var.compare = "trial_type",
                         compare1 = "nonsmoking",
                         compare2 = "smoking",
                         average = "mean")
 
+write_rds(difference, "Data/splifhalf object.Rds")
+
 ```
+
+```{r load difference}
+
+difference <- read_rds("Data/splifhalf object.Rds")
+
+```
+
 
 We reported internal consistency estimates for comparison with previous studies, but they assume the items or trials are presented in the same order [@parsons_psychological_2019]. As cognitive tasks randomise trials, internal consistency may not be the best approach. An alternative is a permutation approach to calculating split-half reliability [@R-splithalf]. This randomly splits the data set into two halves many times and calculates the average correlation between each half. Using 5000 iterations, poor reliability was also reflected in the split-half estimate (corrected using the Spearman-Brown formula) for the 200ms (`r format.splithalf(difference, "200")[1]`) and 500ms (`r format.splithalf(difference, "500")[2]`) SOA conditions. 
 
