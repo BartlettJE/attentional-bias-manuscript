@@ -1,0 +1,317 @@
+---
+title: 'No Meaningful Difference in Attentional Bias Between Daily and Non-Daily Smokers: Supplementary Analyses'
+author: ""
+date: ""
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set up: Packages and files
+
+```{r, warning=FALSE, message=FALSE}
+library("papaja")
+require(tidyverse)
+require(janitor)
+require(afex)
+require(psych)
+require(cowplot)
+require(splithalf)
+library(TOSTER)
+library(pwr)
+library(lme4)
+library(performance)
+
+# Download raincloud plot source file
+# Taken from Allen et al. at https://github.com/RainCloudPlots/RainCloudPlots
+source("raincloud_plot.R")
+
+# This chunk sources custom functions to help with reporting stats and reduce repetition 
+source("reporting_functions.R")
+
+# Seed for random number generation
+set.seed(42)
+```
+
+# Load and process main data
+
+```{r main data, message=F, warning=F}
+# Download the two datafiles 
+# demographics contains information such as age, gender etc. in short form 
+full_dat <- read_csv("Data/OSF_demographics.csv")
+
+# visual probe task data contains task data in long form 
+dat <- read_csv(file = "Data/OSF_visual_probe_task.csv")
+
+# Use janitor package to clear names to snake case for easier typing 
+dat <- clean_names(dat, case = "snake")
+
+# Perform initial screening process 
+# focus on trials display and response screen of Gorilla for RT to dot
+# Ignore neutral filler trials, incorrect responses, and super fast responses < 200ms 
+dat <- dat %>% 
+  filter(display == "trials" & screen_name == "response" & trial_type != "neutral" & correct == 1 & reaction_time > 199)
+
+# outlier removal
+# 2.5 times the absolute deviation from the median as a threshold (Leys et al. 2013)
+# Calculate this for each participant, SOA condition, and trial type 
+dat <- dat %>%
+  group_by(participant_private_id, soa, trial_type) %>% 
+  mutate(median_rt = median(reaction_time),
+         MAD_threshold = stats::mad(reaction_time)*2.5) %>% 
+  filter(reaction_time > (median_rt - MAD_threshold) & reaction_time < (median_rt + MAD_threshold))
+
+# Calculate how much data (%) present for exclusion criteria later 
+trial_n <- dat %>% 
+  group_by(participant_private_id) %>% 
+  count() %>% 
+  mutate(removed = 256 - n,
+         removed_perc = (256 - n) / 256 * 100)
+
+# join full data and number of trials for exclusion criteria
+full_dat <- right_join(full_dat, trial_n,
+                       by = "participant_private_id")
+
+## Apply exclusion criteria
+
+# Note: more specific criteria have to be entered first, or it gets overwritten 
+full_dat <- full_dat %>% 
+  mutate(included = case_when(smoke_everyday == "Yes" & cigarettes_per_week == "No" ~ 0, # Remove contradictory participants
+                              consent_given == 1 & # exclusion criteria from pre-reg
+                                age > 17 & age < 61 &
+                                device == "computer" & 
+                                past_four_weeks == "Yes" & 
+                                removed_perc < 50 & # only participants with 50% or more trials
+                                technical_issues == "No" ~ 1))
+
+# 3 participants had technical issues with time since last cigarette data, so manually remove 
+excluded <- full_dat %>% 
+  count(last_cigarette == "Exclude")
+
+# Reduce down to only eligible participants 
+full_dat <- full_dat %>% 
+  filter(included == 1 & last_cigarette != "Exclude")
+
+# Remove any ineligible participants from task data
+dat <- dat %>% 
+  filter(participant_private_id %in% full_dat$participant_private_id)
+
+```
+
+# Confirmatory Analyses: Attentional Bias Towards Smoking Cues 
+
+```{r mean differences}
+# Convert data to numeric - read as character originally 
+full_dat$age <- as.numeric(full_dat$age)
+full_dat$age_started_smoking <- as.numeric(full_dat$age_started_smoking)
+full_dat$cpd <- as.numeric(full_dat$cpd)
+full_dat$last_cigarette <- as.numeric(full_dat$last_cigarette)
+
+# Add alternate dependence criteria for exploratory analyses
+full_dat <- full_dat %>% 
+  mutate(FTCD = case_when(FTCDsum < 3 ~ "Non-dependent",
+                          FTCDsum > 2 ~ "Dependent"),
+         CPD = case_when(cpd  < 10 ~ "Light", 
+                         cpd > 9 ~ "Heavy"))
+
+# Calculate mean RT for each condition
+ab_analysis <- dat %>% 
+  group_by(participant_private_id, trial_type, soa) %>% 
+  summarise(mean_rt = mean(reaction_time)) %>% 
+  ungroup()
+
+# Spread smoking and neutral trials to calculate AB index
+ab_analysis <- ab_analysis %>% 
+  spread(key = trial_type, value = mean_rt) %>% 
+  mutate(ab_index = nonsmoking - smoking)
+
+# Isolate key variables from demographs to join with AB data
+smoking_dat <- full_dat %>% 
+  select(participant_private_id, smoke_everyday, CPD, FTCD, last_cigarette)
+
+# Add daily / non-daily smoking info 
+ab_analysis <- right_join(ab_analysis, smoking_dat,
+                       by = "participant_private_id")
+
+# Calculate mean and SD for AB index
+ab_descriptives <- ab_analysis %>% 
+  group_by(smoke_everyday, soa) %>% 
+  summarise(mean_bias = round(mean(ab_index), 2),
+            sd_bias = round(sd(ab_index), 2)) %>% 
+  ungroup()
+
+```
+
+
+```{r ANOVA and interaction plot, warning=F, include=F, message=F}
+# Relabel to daily and non-daily smokers to look better 
+ab_analysis$smoke_everyday[ab_analysis$smoke_everyday == "Yes"] <- "Daily" 
+ab_analysis$smoke_everyday[ab_analysis$smoke_everyday == "No"] <- "Non-daily" 
+
+# Calculate 2x2 ANOVA using afex 
+anov <- aov_ez(id = "participant_private_id",
+       dv = "ab_index", 
+       between = "smoke_everyday",
+       within = c("soa"),
+       data = ab_analysis)
+
+# Define interaction plot based on anova object 
+interaction.plot <- afex_plot(anov, 
+          x = "soa", 
+          trace = "smoke_everyday",
+          error_ci = T, # Show 95% CI 
+          legend_title = "Smoking Group",
+          point_arg = list(size = 2),
+          error_arg = list(size = 1, width = 0.1),
+          line_arg = list(size = 1),
+          mapping = c("color", "shape", "fill")) + # ensure link and error bars coloured  
+  xlab("SOA") + 
+  ylab("Attentional Bias Index (ms)") + 
+  scale_x_discrete(labels = c("200ms", "500ms")) + 
+  geom_hline(yintercept = 0, linetype = 2) + # Display 0 AB index for reference 
+  scale_y_continuous(breaks = seq(-100, 100, 25),
+                     limits = c(-100, 100)) + 
+  scale_colour_manual(values = c("#a6cee3", "#1f78b4")) + 
+  theme_cowplot()
+
+```
+
+## Exploratory Analyses: No Meaningful Difference in Attentional Bias 
+
+```{r equivalence testing results, warning=F, include=F, message=F}
+# Isolate mean and SD RT for smoking group and SOA condition 
+mean_sd <- ab_analysis %>% 
+  group_by(smoke_everyday, soa) %>% 
+  summarise(mean_RT = mean(ab_index),
+            sd_RT = sd(ab_index))
+
+# Convert to data frame frame from table as formatting was messing up the TOST function 
+mean_sd <- as.data.frame(mean_sd)
+
+# Comparing daily and non-daily smokers on 200ms SOA
+# boundaries set to d ± .41 based on small telescope approach (Lakens et al. 2018)
+# Vollstaedt-Klein et al. 33% power to detect d = .41. 
+SOA200 <- TOSTtwo(m1 = mean_sd[1, 3], m2 = mean_sd[3, 3], 
+                  sd1 = mean_sd[1, 4], sd2 = mean_sd[3, 4], 
+                  n1 = 106, n2 = 60, 
+                  low_eqbound_d = -0.41, high_eqbound_d = 0.41)
+
+# Comparing daily and non-daily smokers on 500ms SOA
+# Same boundaries as above 
+SOA500 <- TOSTtwo(m1 = mean_sd[2, 3], m2 = mean_sd[4, 3], 
+                  sd1 = mean_sd[2, 4], sd2 = mean_sd[4, 4], 
+                  n1 = 106, n2 = 60, 
+                  low_eqbound_d = -0.41, high_eqbound_d = 0.41)
+
+# Populate tibble for key information needed for plotting 
+# Isolate mean difference with 90% and 95% CI for each SOA condition 
+equivalence_dat <-
+  tribble(
+    ~ condition,
+    ~ mean_diff,
+    ~ LL_TOST,
+    ~ UL_TOST,
+    ~ LL_TTEST,
+    ~ UL_TTEST,
+    "200ms",
+    SOA200$diff,
+    SOA200$LL_CI_TOST,
+    SOA200$UL_CI_TOST,
+    SOA200$LL_CI_TTEST,
+    SOA200$UL_CI_TTEST,
+    "500ms",
+    SOA500$diff,
+    SOA500$LL_CI_TOST,
+    SOA500$UL_CI_TOST,
+    SOA500$LL_CI_TTEST,
+    SOA500$UL_CI_TTEST
+  )
+
+# Create manual TOST plot to demonstrate the mean difference + 90% / 95% CI 
+TOST_plot <- equivalence_dat %>% 
+  ggplot(aes(x = condition, y = mean_diff)) + 
+  geom_point(size = 5, shape = 3) + # Show mean difference with horizontal line 
+  # Create two error bars for 90% and 95% CI - differentiate with thicker 90% line
+  geom_errorbar(aes(ymin = LL_TOST, ymax = UL_TOST), width = 0, size = 2) + 
+  geom_errorbar(aes(ymin = LL_TTEST, ymax = UL_TTEST), width = 0) + 
+  # Demonstrate effect size boundary in raw mean difference units 
+  geom_hline(yintercept = -8.42, linetype = 2) +
+  geom_hline(yintercept = 8.42, linetype = 2) +
+  # Reference point at 0 mean difference 
+  geom_hline(yintercept = 0, linetype = 5) +
+  scale_y_continuous(breaks = seq(-10, 10, 2),
+                     limits = c(-10, 10)) + 
+  ylab("Mean Difference in AB Index (ms)") + 
+  xlab("SOA Condition") + 
+  theme_cowplot() + 
+  # flip on it's side to visualise easier 
+  coord_flip()
+
+```
+
+## Exploratory Analyses: Including trial type as an additional IV
+
+```{r trial type analyses}
+
+trial_analysis <- ab_analysis %>% 
+  pivot_longer(cols = c(nonsmoking, smoking), names_to = "condition", values_to = "RT") %>% 
+  mutate(AB = case_when(ab_index < 0 ~ 0, # Do participants show positive or negative AB effect? 
+                        ab_index > 0 ~ 1))
+
+# Average AB effect for each group / SOA condition
+persons_effect <- trial_analysis %>%
+  group_by(smoke_everyday, soa) %>%
+  summarise(perc_ab = round(mean(AB)*100, 2))
+
+# Calculate 2x2x2 ANOVA using afex 
+anov_trial <- aov_ez(id = "participant_private_id",
+       dv = "RT", 
+       between = "smoke_everyday",
+       within = c("soa", "condition"),
+       data = trial_analysis)
+
+```
+
+```{r trial-plot}
+
+trial_analysis$smoke_everyday[trial_analysis$smoke_everyday == "Daily"] <- "Daily Smokers" 
+trial_analysis$smoke_everyday[trial_analysis$smoke_everyday == "Non-daily"] <- "Non-Daily Smokers" 
+
+# Persons as effect sizes
+trial_analysis %>% 
+  mutate(condition = factor(condition, labels = c("Non-Smoking", "Smoking")),
+         soa = factor(soa, labels = c("200ms SOA", "500ms SOA"))) %>% 
+  ggplot(aes(x = condition, y = RT, group = participant_private_id, colour = as.factor(AB))) + 
+  geom_point(alpha = 0.8) + 
+  geom_line(size = 0.8, alpha = 0.8) + 
+  facet_grid(smoke_everyday~soa) + 
+  theme_cowplot() + 
+  scale_colour_viridis_d(option="plasma", 
+                       begin=0.1, 
+                       end=0.8, 
+                       name = "Attentional Bias Effect",
+                       labels = c("Faster Non-Smoking", "Faster Smoking")) + 
+  labs(x = "Trial Type", y = "Response Time (ms)")
+
+```
+
+# Exploratory Analyses: Linear Mixed Effects model
+
+```{r lmm}
+
+# Combine long data with demographics
+
+# Add daily / non-daily smoking info 
+lmm_data <- left_join(dat, smoking_dat,
+                       by = "participant_private_id")
+
+model1 <- lmer(reaction_time ~ smoke_everyday + soa + trial_type + (1 | participant_private_id) + (1 | stimulus_no), data = lmm_data)
+
+model2 <- lmer(reaction_time ~ smoke_everyday * soa * trial_type + (1 | participant_private_id) + (1 | stimulus_no), data = lmm_data)
+
+check_model(model1)
+
+```
+
