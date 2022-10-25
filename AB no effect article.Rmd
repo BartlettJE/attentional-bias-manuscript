@@ -33,12 +33,12 @@ figurelist        : no
 tablelist         : no
 footnotelist      : no
 linenumbers       : yes
-mask              : yes
-draft             : no
+mask              : no
+draft             : yes
 
 documentclass     : "apa6"
 classoption       : "man"
-output            : papaja::apa6_word
+output            : papaja::apa6_pdf
 ---
 
 ```{r setup, include = FALSE}
